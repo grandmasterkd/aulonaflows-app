@@ -14,7 +14,7 @@ const megafield = localFont({
       style: "normal",
     },
     {
-      path: "./fonts/Megafield-semiBold.woff2",
+      path: "./fonts/Megafield-SemiBold.woff2",
       weight: "600",
       style: "normal",
     },
