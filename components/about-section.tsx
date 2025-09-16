@@ -57,7 +57,7 @@ export function AboutSection() {
   }
 
   return (
-    <section id="about-section" className="min-h-screen px-8 md:px-16 overflow-hidden">
+    <section id="about-section" className="min-h-screen grid place-items-center px-8 md:px-24 lg:px-44 overflow-hidden">
       <div className="container mx-auto">
         {/* Page 1: Hi I'm Aulona & My Journey */}
         {currentPage === 0 && (
@@ -75,7 +75,7 @@ export function AboutSection() {
                 }`}
               >
                 <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[0].title}</h2>
-                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[0].content}</p>
+                <p className="w-full md:max-w-md paragraph-text text-sm leading-relaxed">{aboutContent[0].content}</p>
               </div>
 
               {/* Container 2 - My Journey */}
@@ -85,7 +85,7 @@ export function AboutSection() {
                 }`}
               >
                 <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[1].title}</h2>
-                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[1].content}</p>
+                <p className="w-full md:max-w-md paragraph-text text-sm leading-relaxed">{aboutContent[1].content}</p>
               </div>
             </div>
 

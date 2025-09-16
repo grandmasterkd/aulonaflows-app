@@ -62,8 +62,8 @@ const reviews = [
 
 export function ReviewsSection() {
   return (
-    <section className="py-20 px-8 md:px-16 brand-bg-cream">
-      <div className="max-w-7xl mx-auto">
+    <section className="min-h-screen grid place-items-center px-8 md:px-24 lg:px-44 brand-bg-cream">
+      <div className="container mx-auto">
         {/* Section Title */}
         <div className="text-center mb-16">
           <h2 className="headline-text text-4xl font-semibold">What Our Clients Love</h2>

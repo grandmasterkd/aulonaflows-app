@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import Link from "next/link"
 
 const services = [
   {
@@ -44,11 +45,11 @@ export function ServicesSection() {
   }
 
   return (
-    <section className="min-h-screen grid place-items-center px-8 md:px-16">
+    <section className="min-h-screen grid place-items-center px-8 md:px-24 lg:px-44">
       <div className="container mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           {/* Left Column - Image */}
-          <div className="aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
+          <div className="h-[580px] rounded-3xl overflow-hidden">
             <Image
               src={services[currentService].image || "/placeholder.svg"}
               alt={services[currentService].title}
@@ -59,16 +60,38 @@ export function ServicesSection() {
           </div>
 
           {/* Right Column - Content */}
-          <div className="h-full flex flex-col justify-between gap-y-8">
+          <div className="h-full flex flex-col justify-around gap-y-12">
             {/* Services header with line */}
             <div className="flex items-center gap-4">
               <span className="headline-text text-xs text-black font-semibold uppercase tracking-widest">Services</span>
               <div className="flex-1 h-px bg-[#C6A789]" />
             </div>
 
-           <div className="space-y-4" >
+           <div className="space-y-12" >
+            <div className="space-y-4" >
+
+         
             <h2 className="headline-text leading-normal text-4xl font-semibold">{services[currentService].title}</h2>      
             <p className="paragraph-text text-sm leading-relaxed">{services[currentService].description}</p>
+              </div>
+            <Link href="/book" className="flex items-center gap-x-1.5" >
+        <div className="w-fit rounded-full p-1.5 h-auto bg-transparent border-2 border-[#FDC7AA] " >
+        <Button className="border border-[#FFBE5D] rounded-3xl px-6 py-5 text-xs font-medium transition-all duration-300 flex items-center gap-2"
+          style={{
+            background: "linear-gradient(90deg, #FFE3E1 0%, #FFD3B3 53%, #FFDDB9 100%)",
+            color: "#654625", // A dark brown that should contrast well with the gradient
+          }}
+        
+        >
+          BOOK A CLASS
+        
+        </Button>
+        </div>
+        <div className="bg-[#FFDDB9] h-14 w-14 p-2 rounded-2xl flex items-center justify-center" >
+         <ChevronRight className="text-[#A56024] size-7" />
+        </div>
+  
+        </Link>
            </div>
             
 
