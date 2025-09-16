@@ -14,8 +14,8 @@ const megafield = localFont({
       style: "normal",
     },
     {
-      path: "./fonts/Megafield-Bold.woff2",
-      weight: "700",
+      path: "./fonts/Megafield-SemiBold.woff2",
+      weight: "600",
       style: "normal",
     },
   ],
@@ -33,7 +33,10 @@ export const metadata: Metadata = {
   title: "Aulona Flows - Yoga Studio Glasgow",
   description:
     "Begin your journey inward with Aulona Flows yoga studio in Glasgow. Offering yoga classes, sound therapy, wellness events, and corporate bookings.",
-  generator: "v0.app",
+  generator: "aulonaflows.com",
+  icons: {
+    icon: "/favico.svg",
+  },
 }
 
 export default function RootLayout({

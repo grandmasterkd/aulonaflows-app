@@ -7,52 +7,52 @@ const reviews = [
     location: "Glasgow",
     review:
       "Aulona's classes have transformed my relationship with my body and mind. Her gentle guidance and deep wisdom create such a safe space for growth.",
-    image: "/placeholder-c5nf6.png",
+    image: "/review-potrait-7.jpg",
   },
   {
-    name: "James Robertson",
+    name: "Gina Robertson",
     session: "Sound Therapy",
     location: "Glasgow",
     review: "The sound healing sessions are absolutely magical. I leave feeling completely renewed and centered.",
-    image: "/placeholder-gn3js.png",
+    image: "/review-potrait-6.jpg",
   },
   {
     name: "Emma Thompson",
     session: "Vinyasa Flow",
     location: "Glasgow",
     review: "Every class is a journey of self-discovery. Aulona's teaching style is both challenging and nurturing.",
-    image: "/placeholder-khe2j.png",
+    image: "/review-potrait-5.jpg",
   },
   {
-    name: "Michael Chen",
+    name: "Michelle Chen",
     session: "Corporate Session",
     location: "Glasgow",
     review: "Our team's stress levels have significantly decreased since starting regular sessions with Aulona.",
-    image: "/placeholder-x1j66.png",
+    image: "/review-potrait-4.jpg",
   },
   {
     name: "Lisa Anderson",
     session: "Wellness Workshop",
     location: "Glasgow",
     review: "The mindfulness techniques I learned have become essential tools in my daily life.",
-    image: "/placeholder-tp4ep.png",
+    image: "/review-potrait-3.jpg",
   },
   {
-    name: "David Wilson",
+    name: "Natalie Wilson",
     session: "Private Session",
     location: "Glasgow",
     review: "Personalized attention helped me overcome physical limitations I thought were permanent.",
-    image: "/placeholder-69c58.png",
+    image: "/review-potrait-2.jpg",
   },
   {
     name: "Rachel Green",
     session: "Sound Bath",
     location: "Glasgow",
     review: "Pure bliss. These sessions have become my monthly reset ritual.",
-    image: "/placeholder.svg?height=60&width=60",
+    image: "/review-potrait-1.jpg",
   },
   {
-    name: "Tom Bradley",
+    name: "Claire Bradley",
     session: "Beginner Yoga",
     location: "Glasgow",
     review: "As a complete beginner, I felt welcomed and supported from day one.",
@@ -66,14 +66,14 @@ export function ReviewsSection() {
       <div className="max-w-7xl mx-auto">
         {/* Section Title */}
         <div className="text-center mb-16">
-          <h2 className="headline-text text-4xl md:text-5xl font-bold">What Our Clients Love</h2>
+          <h2 className="headline-text text-4xl font-semibold">What Our Clients Love</h2>
         </div>
 
         {/* Bento Grid */}
         <div className="grid grid-cols-4 grid-rows-2 gap-4 h-[600px]">
           {/* Row 1 */}
           {/* Column 1 - 60% height */}
-          <div className="brand-bg-beige rounded-lg p-6 flex flex-col justify-between">
+          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-4">
               <Image
                 src={reviews[0].image || "/placeholder.svg"}
@@ -92,7 +92,7 @@ export function ReviewsSection() {
           </div>
 
           {/* Columns 2+3 - 50% height, spans 2 columns */}
-          <div className="col-span-2 brand-bg-beige rounded-lg p-6 flex flex-col justify-between">
+          <div className="col-span-2 brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-4">
               <Image
                 src={reviews[1].image || "/placeholder.svg"}
@@ -111,7 +111,7 @@ export function ReviewsSection() {
           </div>
 
           {/* Column 4 - 60% height */}
-          <div className="brand-bg-beige rounded-lg p-6 flex flex-col justify-between">
+          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-4">
               <Image
                 src={reviews[2].image || "/placeholder.svg"}
@@ -131,7 +131,7 @@ export function ReviewsSection() {
 
           {/* Row 2 */}
           {/* Column 1 - 40% height */}
-          <div className="brand-bg-beige rounded-lg p-6 flex flex-col justify-between">
+          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-3">
               <Image
                 src={reviews[3].image || "/placeholder.svg"}
@@ -150,7 +150,7 @@ export function ReviewsSection() {
           </div>
 
           {/* Column 2 - 50% height */}
-          <div className="brand-bg-beige rounded-lg p-6 flex flex-col justify-between">
+          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-4">
               <Image
                 src={reviews[4].image || "/placeholder.svg"}
@@ -169,7 +169,7 @@ export function ReviewsSection() {
           </div>
 
           {/* Column 3 - 50% height */}
-          <div className="brand-bg-beige rounded-lg p-6 flex flex-col justify-between">
+          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-4">
               <Image
                 src={reviews[5].image || "/placeholder.svg"}
@@ -188,7 +188,7 @@ export function ReviewsSection() {
           </div>
 
           {/* Column 4 - 40% height */}
-          <div className="brand-bg-beige rounded-lg p-6 flex flex-col justify-between">
+          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
             <div className="flex items-center gap-3 mb-3">
               <Image
                 src={reviews[6].image || "/placeholder.svg"}
