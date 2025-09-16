@@ -38,13 +38,13 @@ export function FAQSection() {
       <div className="max-w-4xl mx-auto">
         {/* Section Title */}
         <div className="text-center mb-16">
-          <h2 className="headline-text text-4xl md:text-5xl font-bold">Frequently Asked Questions</h2>
+          <h2 className="headline-text leading-normal text-4xl font-semibold">Frequently Asked Questions</h2>
         </div>
 
         {/* FAQ Items */}
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+            <div key={index} className=" overflow-hidden">
               <button
                 onClick={() => toggleFAQ(index)}
                 className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"

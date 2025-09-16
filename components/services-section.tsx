@@ -10,25 +10,25 @@ const services = [
     title: "Yoga Classes",
     description:
       "From gentle Hatha to dynamic Vinyasa flows, our classes cater to all levels and abilities. Experience the transformative power of mindful movement in a supportive, non-judgmental environment where every body is welcome.",
-    image: "/placeholder-4h0lf.png",
+    image: "/services-temp-1.jpg",
   },
   {
     title: "Sound Therapy",
     description:
       "Immerse yourself in healing vibrations through crystal singing bowls, gongs, and other sacred instruments. These deeply relaxing sessions help reduce stress, improve sleep, and restore energetic balance.",
-    image: "/placeholder-iwye8.png",
+    image: "/services-temp-2.jpg",
   },
   {
     title: "Wellness Events",
     description:
       "Join our special workshops, retreats, and community gatherings designed to deepen your practice and connect with like-minded souls. From meditation intensives to seasonal celebrations, there's always something inspiring happening.",
-    image: "/placeholder-ki482.png",
+    image: "/services-temp-3.jpg",
   },
   {
     title: "Corporate & Private Bookings",
     description:
       "Bring the benefits of yoga and mindfulness to your workplace or special event. Our customized sessions help reduce stress, improve focus, and create a more harmonious environment for teams and individuals.",
-    image: "/placeholder-r5jlq.png",
+    image: "/services-temp-4.jpg",
   },
 ]
 
@@ -44,8 +44,8 @@ export function ServicesSection() {
   }
 
   return (
-    <section className="py-20 px-8 md:px-16 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+    <section className="min-h-screen grid place-items-center px-8 md:px-16">
+      <div className="container mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           {/* Left Column - Image */}
           <div className="aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
@@ -54,27 +54,27 @@ export function ServicesSection() {
               alt={services[currentService].title}
               width={600}
               height={450}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-3xl"
             />
           </div>
 
           {/* Right Column - Content */}
-          <div className="space-y-8">
+          <div className="h-full flex flex-col justify-between gap-y-8">
             {/* Services header with line */}
             <div className="flex items-center gap-4">
-              <span className="paragraph-text text-sm uppercase tracking-wider">Services</span>
+              <span className="headline-text text-xs text-black font-semibold uppercase tracking-widest">Services</span>
               <div className="flex-1 h-px bg-[#C6A789]" />
             </div>
 
-            {/* Service Title */}
-            <h2 className="headline-text text-4xl md:text-5xl font-bold">{services[currentService].title}</h2>
-
-            {/* Service Description */}
-            <p className="paragraph-text text-lg leading-relaxed">{services[currentService].description}</p>
+           <div className="space-y-4" >
+            <h2 className="headline-text leading-normal text-4xl font-semibold">{services[currentService].title}</h2>      
+            <p className="paragraph-text text-sm leading-relaxed">{services[currentService].description}</p>
+           </div>
+            
 
             {/* Navigation */}
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={prevService} className="rounded-full bg-transparent">
+              <Button variant="outline" size="icon" onClick={prevService} className="hidden rounded-full bg-transparent">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
 
@@ -90,7 +90,7 @@ export function ServicesSection() {
                 ))}
               </div>
 
-              <Button variant="outline" size="icon" onClick={nextService} className="rounded-full bg-transparent">
+              <Button variant="outline" size="icon" onClick={nextService} className="hidden rounded-full bg-transparent">
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -30,6 +30,23 @@ const aboutContent = [
 
 export function AboutSection() {
   const [currentPage, setCurrentPage] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 },
+    )
+
+    const section = document.getElementById("about-section")
+    if (section) observer.observe(section)
+
+    return () => observer.disconnect()
+  }, [])
 
   const nextPage = () => {
     setCurrentPage((prev) => (prev + 1) % 2)
@@ -40,56 +57,93 @@ export function AboutSection() {
   }
 
   return (
-    <section className="py-20 px-8 md:px-16 bg-white">
-      <div className="max-w-7xl mx-auto">
+    <section id="about-section" className="min-h-screen px-8 md:px-16 overflow-hidden">
+      <div className="container mx-auto">
         {/* Page 1: Hi I'm Aulona & My Journey */}
         {currentPage === 0 && (
-          <div className="grid md:grid-cols-2 gap-16 items-start">
+          <div
+            className={`grid md:grid-cols-2 gap-0 items-center transition-all duration-1000 ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
             {/* Left Column - Text Containers */}
             <div className="space-y-12">
               {/* Container 1 - Hi I'm Aulona */}
-              <div className="space-y-4">
+              <div
+                className={`space-y-4 transition-all duration-700 delay-200 ${
+                  isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                }`}
+              >
                 <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[0].title}</h2>
-                <p className="paragraph-text text-lg leading-relaxed">{aboutContent[0].content}</p>
+                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[0].content}</p>
               </div>
 
               {/* Container 2 - My Journey */}
-              <div className="space-y-4">
+              <div
+                className={`space-y-4 transition-all duration-700 delay-400 ${
+                  isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                }`}
+              >
                 <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[1].title}</h2>
-                <p className="paragraph-text text-lg leading-relaxed">{aboutContent[1].content}</p>
+                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[1].content}</p>
               </div>
             </div>
 
-            {/* Right Column - Images */}
-            <div className="relative">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <div className="aspect-[3/4] bg-gray-200 rounded-lg overflow-hidden">
+            {/* Right Column - Stacked Images */}
+            <div className="relative mt-0 md:mt-24 min-h-screen flex flex-col items-start justify-center">
+              <div className="relative w-96 h-[500px]">
+                {/* Image 1 - Bottom layer, rotated left */}
+                <div
+                  className={`absolute inset-0 transition-all duration-1000 delay-300 ${
+                    isVisible
+                      ? "opacity-100 rotate-[-8deg] translate-x-0 translate-y-0"
+                      : "opacity-0 rotate-[-15deg] translate-x-8 translate-y-8"
+                  }`}
+                >
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
                     <Image
-                      src="/yoga-instructor-meditation.png"
+                      src="/aulona-temp-1.jpg"
                       alt="Aulona in meditation"
-                      width={300}
-                      height={400}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                    <Image
-                      src="/yoga-studio-natural-light.png"
-                      alt="Yoga studio"
-                      width={300}
-                      height={300}
+                      width={384}
+                      height={500}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 </div>
-                <div className="pt-8">
-                  <div className="aspect-[4/5] bg-gray-200 rounded-lg overflow-hidden">
+
+                {/* Image 2 - Middle layer, rotated right */}
+                <div
+                  className={`absolute inset-0 transition-all duration-1000 delay-500 ${
+                    isVisible
+                      ? "opacity-100 rotate-[6deg] translate-x-0 translate-y-0"
+                      : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
+                  }`}
+                >
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-32 -translate-y-16">
                     <Image
-                      src="/placeholder-9hrr2.png"
+                      src="/aulona-temp-2.jpg"
+                      alt="Yoga studio"
+                      width={384}
+                      height={500}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                {/* Image 3 - Top layer, slight left rotation */}
+                <div
+                  className={`absolute inset-0 transition-all duration-1000 delay-700 ${
+                    isVisible
+                      ? "opacity-100 rotate-[-3deg] translate-x-0 translate-y-0"
+                      : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
+                  }`}
+                >
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-64 -translate-y-32">
+                    <Image
+                      src="/aulona-temp-3.jpg"
                       alt="Aulona practicing yoga"
-                      width={320}
-                      height={400}
+                      width={384}
+                      height={500}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -101,64 +155,106 @@ export function AboutSection() {
 
         {/* Page 2: My Approach & My Philosophy */}
         {currentPage === 1 && (
-          <div className="grid md:grid-cols-2 gap-16 items-start">
-            {/* Left Column - Images */}
-            <div className="relative">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="pt-8">
-                  <div className="aspect-[4/5] bg-gray-200 rounded-lg overflow-hidden">
-                    <Image
-                      src="/placeholder-c1huf.png"
-                      alt="Sound healing setup"
-                      width={320}
-                      height={400}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="aspect-[3/4] bg-gray-200 rounded-lg overflow-hidden">
-                    <Image
-                      src="/placeholder-ibdub.png"
-                      alt="Group yoga class"
-                      width={300}
-                      height={400}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                    <Image
-                      src="/placeholder-zyck8.png"
-                      alt="Meditation space"
-                      width={300}
-                      height={300}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
+         <div
+            className={`grid md:grid-cols-2 gap-0 items-center transition-all duration-1000 ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
+            {/* Left Column - Text Containers */}
+            <div className="space-y-12">
+              {/* Container 1 - Hi I'm Aulona */}
+              <div
+                className={`space-y-4 transition-all duration-700 delay-200 ${
+                  isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                }`}
+              >
+                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[2].title}</h2>
+                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[2].content}</p>
+              </div>
+
+              {/* Container 2 - My Journey */}
+              <div
+                className={`space-y-4 transition-all duration-700 delay-400 ${
+                  isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                }`}
+              >
+                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[3].title}</h2>
+                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[3].content}</p>
               </div>
             </div>
 
-            {/* Right Column - Text Containers */}
-            <div className="space-y-12">
-              {/* Container 3 - My Approach */}
-              <div className="space-y-4">
-                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[2].title}</h2>
-                <p className="paragraph-text text-lg leading-relaxed">{aboutContent[2].content}</p>
-              </div>
+            {/* Right Column - Stacked Images */}
+            <div className="relative mt-0 md:mt-24 min-h-screen flex flex-col items-end justify-center">
+              <div className="relative w-96 h-[500px]">
+                {/* Image 1 - Bottom layer, rotated left */}
+                <div
+                  className={`absolute inset-0 transition-all duration-1000 delay-300 ${
+                    isVisible
+                      ? "opacity-100 rotate-[-4deg] translate-x-0 translate-y-0"
+                      : "opacity-0 rotate-[-15deg] translate-x-8 translate-y-8"
+                  }`}
+                >
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
+                    <Image
+                      src="/aulona-temp-4.jpg"
+                      alt="Aulona in meditation"
+                      width={384}
+                      height={500}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
 
-              {/* Container 4 - My Philosophy */}
-              <div className="space-y-4">
-                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[3].title}</h2>
-                <p className="paragraph-text text-lg leading-relaxed">{aboutContent[3].content}</p>
+                {/* Image 2 - Middle layer, rotated right */}
+                <div
+                  className={`absolute inset-0 transition-all duration-1000 delay-500 ${
+                    isVisible
+                      ? "opacity-100 rotate-[6deg] translate-x-0 translate-y-0"
+                      : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
+                  }`}
+                >
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform -translate-x-32 -translate-y-16">
+                    <Image
+                      src="/aulona-temp-5.jpg"
+                      alt="Yoga studio"
+                      width={384}
+                      height={500}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                {/* Image 3 - Top layer, slight left rotation */}
+                <div
+                  className={`absolute inset-0 transition-all duration-1000 delay-700 ${
+                    isVisible
+                      ? "opacity-100 rotate-[-3deg] translate-x-0 translate-y-0"
+                      : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
+                  }`}
+                >
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform -translate-x-64 -translate-y-8">
+                    <Image
+                      src="/aulona-temp-6.jpg"
+                      alt="Aulona practicing yoga"
+                      width={384}
+                      height={500}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* Pagination Controls */}
-        <div className="flex justify-center items-center gap-4 mt-16">
-          <Button variant="outline" size="icon" onClick={prevPage} className="rounded-full bg-transparent">
+        <div className="flex justify-center items-center gap-4 mt-0">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={prevPage}
+            className="hidden rounded-full bg-transparent hover:bg-gray-100 transition-colors"
+          >
             <ChevronLeft className="w-4 h-4" />
           </Button>
 
@@ -167,14 +263,19 @@ export function AboutSection() {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  currentPage === page ? "bg-[#654625]" : "bg-gray-300"
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  currentPage === page ? "bg-[#654625] scale-125" : "bg-gray-300 hover:bg-gray-400"
                 }`}
               />
             ))}
           </div>
 
-          <Button variant="outline" size="icon" onClick={nextPage} className="rounded-full bg-transparent">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={nextPage}
+            className="hidden rounded-full bg-transparent hover:bg-gray-100 transition-colors"
+          >
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
