@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge"
 import { Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 interface Client {
   name: string
@@ -54,11 +55,10 @@ export default function AdminClientsPage() {
   const fetchClients = async () => {
     const supabase = createClient()
 
-    // Get unique clients from bookings
     const { data: bookings, error } = await supabase
       .from("bookings")
-      .select("name, email, phone, created_at")
-      .order("created_at", { ascending: false })
+      .select("notes, createdAt")
+      .order("createdAt", { ascending: false })
 
     if (error) {
       console.error("Error fetching clients:", error)
@@ -66,23 +66,30 @@ export default function AdminClientsPage() {
       return
     }
 
-    // Process bookings to create unique clients with booking counts
     const clientMap = new Map<string, Client>()
 
     bookings?.forEach((booking) => {
-      const email = booking.email
-      if (clientMap.has(email)) {
-        const client = clientMap.get(email)!
-        client.booking_count += 1
-      } else {
-        clientMap.set(email, {
-          name: booking.name,
-          email: booking.email,
-          phone: booking.phone || "N/A",
-          location: "Glasgow", // Default location
-          date_joined: booking.created_at,
-          booking_count: 1,
-        })
+      try {
+        const clientInfo = JSON.parse(booking.notes || "{}")
+        const email = clientInfo.email
+
+        if (email && clientInfo.name) {
+          if (clientMap.has(email)) {
+            const client = clientMap.get(email)!
+            client.booking_count += 1
+          } else {
+            clientMap.set(email, {
+              name: clientInfo.name,
+              email: clientInfo.email,
+              phone: clientInfo.phone || "N/A",
+              location: "Glasgow", // Default location
+              date_joined: booking.createdAt,
+              booking_count: 1,
+            })
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing booking notes:", e)
       }
     })
 
@@ -95,19 +102,16 @@ export default function AdminClientsPage() {
 
     const { data: bookings, error } = await supabase
       .from("bookings")
-      .select(
-        `
+      .select(`
         id,
-        name,
+        notes,
         booking_date,
         payment_status,
-        booking_status,
+        status,
         events (
           name
         )
-      `,
-      )
-      .eq("email", email)
+      `)
       .order("booking_date", { ascending: false })
 
     if (error) {
@@ -115,15 +119,29 @@ export default function AdminClientsPage() {
       return
     }
 
-    const formattedBookings: ClientBooking[] =
-      bookings?.map((booking) => ({
-        id: booking.id,
-        name: booking.name,
-        booking_date: booking.booking_date,
-        event_name: booking.events?.[0]?.name || "Unknown Event", 
-        payment_status: booking.payment_status,
-        booking_status: booking.booking_status,
-      })) || []
+    const formattedBookings: ClientBooking[] = []
+
+    bookings?.forEach((booking) => {
+      try {
+        // Explicitly type booking.events
+        const events = booking.events as { name: string }[] | { name: string } | null | undefined
+        const clientInfo = JSON.parse(booking.notes || "{}")
+        if (clientInfo.email === email) {
+          formattedBookings.push({
+            id: booking.id,
+            name: clientInfo.name,
+            booking_date: booking.booking_date,
+            event_name: Array.isArray(events)
+              ? events[0]?.name || "Unknown Event"
+              : (events as { name: string } | undefined)?.name || "Unknown Event",
+            payment_status: booking.payment_status,
+            booking_status: booking.status,
+          })
+        }
+      } catch (e) {
+        console.error("Error parsing booking notes:", e)
+      }
+    })
 
     setClientBookings(formattedBookings)
   }
@@ -169,8 +187,8 @@ export default function AdminClientsPage() {
   }
 
   if (isLoading) {
-    return <div className="p-8">Loading...</div>
-  }
+     return <div className="min-h-screen flex items-center justify-center animate-pulse"><Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} /></div>
+   }
 
   return (
     <div className="space-y-6">

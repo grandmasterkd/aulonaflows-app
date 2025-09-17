@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Edit, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 interface Event {
   id: string
@@ -174,8 +175,8 @@ export default function AdminEventsPage() {
   }
 
   if (isLoading) {
-    return <div className="p-8">Loading...</div>
-  }
+     return <div className="min-h-screen flex items-center justify-center animate-pulse"><Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} /></div>
+   }
 
   return (
     <div className="space-y-6">

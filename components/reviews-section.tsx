@@ -1,210 +1,152 @@
+"use client"
+
 import Image from "next/image"
+import { useState, useEffect } from "react"
+import { reviewsData } from "@/utils/reviews-data"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
-const reviews = [
-  {
-    name: "Sarah Mitchell",
-    session: "Hatha Yoga",
-    location: "Glasgow",
-    review:
-      "Aulona's classes have transformed my relationship with my body and mind. Her gentle guidance and deep wisdom create such a safe space for growth.",
-    image: "/review-potrait-7.jpg",
-  },
-  {
-    name: "Gina Robertson",
-    session: "Sound Therapy",
-    location: "Glasgow",
-    review: "The sound healing sessions are absolutely magical. I leave feeling completely renewed and centered.",
-    image: "/review-potrait-6.jpg",
-  },
-  {
-    name: "Emma Thompson",
-    session: "Vinyasa Flow",
-    location: "Glasgow",
-    review: "Every class is a journey of self-discovery. Aulona's teaching style is both challenging and nurturing.",
-    image: "/review-potrait-5.jpg",
-  },
-  {
-    name: "Michelle Chen",
-    session: "Corporate Session",
-    location: "Glasgow",
-    review: "Our team's stress levels have significantly decreased since starting regular sessions with Aulona.",
-    image: "/review-potrait-4.jpg",
-  },
-  {
-    name: "Lisa Anderson",
-    session: "Wellness Workshop",
-    location: "Glasgow",
-    review: "The mindfulness techniques I learned have become essential tools in my daily life.",
-    image: "/review-potrait-3.jpg",
-  },
-  {
-    name: "Natalie Wilson",
-    session: "Private Session",
-    location: "Glasgow",
-    review: "Personalized attention helped me overcome physical limitations I thought were permanent.",
-    image: "/review-potrait-2.jpg",
-  },
-  {
-    name: "Rachel Green",
-    session: "Sound Bath",
-    location: "Glasgow",
-    review: "Pure bliss. These sessions have become my monthly reset ritual.",
-    image: "/review-potrait-1.jpg",
-  },
-  {
-    name: "Claire Bradley",
-    session: "Beginner Yoga",
-    location: "Glasgow",
-    review: "As a complete beginner, I felt welcomed and supported from day one.",
-    image: "/placeholder.svg?height=60&width=60",
-  },
-]
+interface Review {
+  id: number
+  name: string
+  session: string
+  location: string
+  review: string
+  image: string
+}
 
-export function ReviewsSection() {
+function ReviewCard({
+  review,
+  className,
+  isVisible,
+  delay = 0,
+}: {
+  review: Review
+  className?: string
+  isVisible: boolean
+  delay?: number
+}) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   return (
-    <section className="py-20 px-8 md:px-16 brand-bg-cream">
-      <div className="max-w-7xl mx-auto">
-        {/* Section Title */}
-        <div className="text-center mb-16">
-          <h2 className="headline-text text-4xl font-semibold">What Our Clients Love</h2>
+    <>
+      <div
+        className={`brand-bg-beige rounded-3xl p-6 flex flex-col justify-between h-full overflow-hidden transition-all duration-700 ease-out ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        } ${className}`}
+        style={{ transitionDelay: `${delay}ms` }}
+      >
+        <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+          <Image
+            src={review.image || "/placeholder.svg"}
+            alt={review.name}
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+          />
+          <h3 className="headline-text text-lg font-semibold line-clamp-1">{review.name}</h3>
         </div>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-4 grid-rows-2 gap-4 h-[600px]">
-          {/* Row 1 */}
-          {/* Column 1 - 60% height */}
-          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-4">
-              <Image
-                src={reviews[0].image || "/placeholder.svg"}
-                alt={reviews[0].name}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full object-cover"
-              />
-              <h3 className="headline-text text-lg font-semibold">{reviews[0].name}</h3>
-            </div>
-            <p className="text-black text-sm leading-relaxed mb-4 flex-1">{reviews[0].review}</p>
-            <div className="text-xs paragraph-text">
-              <p>{reviews[0].session}</p>
-              <p>{reviews[0].location}</p>
-            </div>
-          </div>
+        <div className="flex-1 space-y-2 overflow-hidden">
+          <p className="text-black text-sm leading-relaxed line-clamp-3">{review.review}</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-white/50 backdrop-blur-sm w-auto px-6 rounded-3xl px-3 h-8 text-[#57463B] hover:underline text-xs"
+          >
+            Read More
+          </Button>
+        </div>
 
-          {/* Columns 2+3 - 50% height, spans 2 columns */}
-          <div className="col-span-2 brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-4">
-              <Image
-                src={reviews[1].image || "/placeholder.svg"}
-                alt={reviews[1].name}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full object-cover"
-              />
-              <h3 className="headline-text text-lg font-semibold">{reviews[1].name}</h3>
-            </div>
-            <p className="text-black text-sm leading-relaxed mb-4 flex-1">{reviews[1].review}</p>
-            <div className="text-xs paragraph-text">
-              <p>{reviews[1].session}</p>
-              <p>{reviews[1].location}</p>
-            </div>
-          </div>
+        <div className="mt-5 md:mt-0 text-xs paragraph-text text-white flex-shrink-0">
+          <p className="line-clamp-1">{review.session}</p>
+          <p className="line-clamp-1">{review.location}</p>
+        </div>
+      </div>
 
-          {/* Column 4 - 60% height */}
-          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-4">
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="w-[80%] h-auto md:max-w-2xl md:max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-0">
               <Image
-                src={reviews[2].image || "/placeholder.svg"}
-                alt={reviews[2].name}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full object-cover"
+                src={review.image || "/placeholder.svg"}
+                alt={review.name}
+                width={60}
+                height={60}
+                className="w-14 h-14 rounded-full object-cover"
               />
-              <h3 className="headline-text text-lg font-semibold">{reviews[2].name}</h3>
+              <div className="flex flex-col items-start" >
+                <DialogTitle className="headline-text text-xl font-semibold">{review.name}</DialogTitle>
+                <span className="text-sm text-gray-600 flex items-center gap-x-1">
+                 <p>{review.session}</p>  • <p>{review.location}</p>
+                </span>
+              </div>
             </div>
-            <p className="text-black text-sm leading-relaxed mb-4 flex-1">{reviews[2].review}</p>
-            <div className="text-xs paragraph-text">
-              <p>{reviews[2].session}</p>
-              <p>{reviews[2].location}</p>
-            </div>
+          </DialogHeader>
+          <div className="mt-0">
+            <p className="text-gray-500 text-sm leading-relaxed">{review.review}</p>
           </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 
-          {/* Row 2 */}
-          {/* Column 1 - 40% height */}
-          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-3">
-              <Image
-                src={reviews[3].image || "/placeholder.svg"}
-                alt={reviews[3].name}
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <h3 className="headline-text text-base font-semibold">{reviews[3].name}</h3>
-            </div>
-            <p className="text-black text-xs leading-relaxed mb-3 flex-1">{reviews[3].review}</p>
-            <div className="text-xs paragraph-text">
-              <p>{reviews[3].session}</p>
-              <p>{reviews[3].location}</p>
-            </div>
-          </div>
+export function ReviewsSection() {
+  const [isVisible, setIsVisible] = useState(false)
 
-          {/* Column 2 - 50% height */}
-          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-4">
-              <Image
-                src={reviews[4].image || "/placeholder.svg"}
-                alt={reviews[4].name}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full object-cover"
-              />
-              <h3 className="headline-text text-lg font-semibold">{reviews[4].name}</h3>
-            </div>
-            <p className="text-black text-sm leading-relaxed mb-4 flex-1">{reviews[4].review}</p>
-            <div className="text-xs paragraph-text">
-              <p>{reviews[4].session}</p>
-              <p>{reviews[4].location}</p>
-            </div>
-          </div>
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 },
+    )
 
-          {/* Column 3 - 50% height */}
-          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-4">
-              <Image
-                src={reviews[5].image || "/placeholder.svg"}
-                alt={reviews[5].name}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full object-cover"
-              />
-              <h3 className="headline-text text-lg font-semibold">{reviews[5].name}</h3>
-            </div>
-            <p className="text-black text-sm leading-relaxed mb-4 flex-1">{reviews[5].review}</p>
-            <div className="text-xs paragraph-text">
-              <p>{reviews[5].session}</p>
-              <p>{reviews[5].location}</p>
-            </div>
-          </div>
+    const section = document.getElementById("reviews-section")
+    if (section) observer.observe(section)
 
-          {/* Column 4 - 40% height */}
-          <div className="brand-bg-beige rounded-3xl p-6 flex flex-col justify-between">
-            <div className="flex items-center gap-3 mb-3">
-              <Image
-                src={reviews[6].image || "/placeholder.svg"}
-                alt={reviews[6].name}
-                width={40}
-                height={40}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-              <h3 className="headline-text text-base font-semibold">{reviews[6].name}</h3>
-            </div>
-            <p className="text-black text-xs leading-relaxed mb-3 flex-1">{reviews[6].review}</p>
-            <div className="text-xs paragraph-text">
-              <p>{reviews[6].session}</p>
-              <p>{reviews[6].location}</p>
-            </div>
-          </div>
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section id="reviews-section" className="py-20 px-8 md:px-24 lg:px-44 brand-bg-cream">
+      <div className="container mx-auto">
+        <div className="text-center mb-16">
+          <h2
+            className={`headline-text text-3xl md:text-4xl lg:text-5xl font-bold transition-all duration-700 ease-out ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+            style={{ transitionDelay: "100ms" }}
+          >
+            What Our Clients Love
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-4 lg:h-[600px]">
+          {/* Row 1 - Desktop layout */}
+          <ReviewCard review={reviewsData[0]} className="lg:row-span-1" isVisible={isVisible} delay={200} />
+
+          <ReviewCard
+            review={reviewsData[1]}
+            className="sm:col-span-1 lg:col-span-2 lg:row-span-1"
+            isVisible={isVisible}
+            delay={300}
+          />
+
+          <ReviewCard review={reviewsData[2]} className="lg:row-span-1" isVisible={isVisible} delay={400} />
+
+          {/* Row 2 - Desktop layout */}
+          <ReviewCard review={reviewsData[3]} className="lg:row-span-1" isVisible={isVisible} delay={500} />
+
+          <ReviewCard review={reviewsData[4]} className="lg:row-span-1" isVisible={isVisible} delay={600} />
+
+          <ReviewCard review={reviewsData[5]} className="lg:row-span-1" isVisible={isVisible} delay={700} />
+
+          <ReviewCard review={reviewsData[6]} className="lg:row-span-1" isVisible={isVisible} delay={800} />
         </div>
       </div>
     </section>

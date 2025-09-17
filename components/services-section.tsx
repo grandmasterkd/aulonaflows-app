@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import Link from "next/link"
 
 const services = [
   {
@@ -34,6 +35,25 @@ const services = [
 
 export function ServicesSection() {
   const [currentService, setCurrentService] = useState(0)
+  const [isVisible, setIsVisible] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.2 },
+    )
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   const nextService = () => {
     setCurrentService((prev) => (prev + 1) % services.length)
@@ -44,55 +64,113 @@ export function ServicesSection() {
   }
 
   return (
-    <section className="min-h-screen grid place-items-center px-8 md:px-16">
+    <section
+      ref={sectionRef}
+      className="py-4 pb-8 md:pb-0 md:py-0 min-h-screen grid place-items-center px-8 md:px-24 lg:px-44"
+    >
       <div className="container mx-auto">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
+        <div className="flex flex-col-reverse md:grid md:grid-cols-2 gap-8 md:gap-16 items-center">
           {/* Left Column - Image */}
-          <div className="aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
-            <Image
-              src={services[currentService].image || "/placeholder.svg"}
-              alt={services[currentService].title}
-              width={600}
-              height={450}
-              className="w-full h-full object-cover rounded-3xl"
-            />
-          </div>
-
-          {/* Right Column - Content */}
-          <div className="h-full flex flex-col justify-between gap-y-8">
-            {/* Services header with line */}
-            <div className="flex items-center gap-4">
-              <span className="headline-text text-xs text-black font-semibold uppercase tracking-widest">Services</span>
-              <div className="flex-1 h-px bg-[#C6A789]" />
+          <section
+            className={`transition-all duration-1000 ease-out ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            }`}
+            style={{ transitionDelay: "200ms" }}
+          >
+            <div className="h-[400px] md:h-[580px] rounded-3xl overflow-hidden">
+              <Image
+                src={services[currentService].image || "/placeholder.svg"}
+                alt={services[currentService].title}
+                width={500}
+                height={450}
+                className="w-full h-full object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
+              />
             </div>
-
-           <div className="space-y-4" >
-            <h2 className="headline-text leading-normal text-4xl font-semibold">{services[currentService].title}</h2>      
-            <p className="paragraph-text text-sm leading-relaxed">{services[currentService].description}</p>
-           </div>
-            
-
-            {/* Navigation */}
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="icon" onClick={prevService} className="hidden rounded-full bg-transparent">
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-
+            <div className="mt-8 flex md:hidden justify-center items-center gap-4 pb-8">
               <div className="flex gap-2">
                 {services.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentService(index)}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      currentService === index ? "bg-[#654625]" : "bg-gray-300"
+                    className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 ${
+                      currentService === index ? "bg-[#654625] scale-110" : "bg-gray-300"
                     }`}
                   />
                 ))}
               </div>
+            </div>
+          </section>
 
-              <Button variant="outline" size="icon" onClick={nextService} className="hidden rounded-full bg-transparent">
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+          {/* Right Column - Content */}
+          <div className="h-full flex flex-col justify-between md:justify-around gap-y-8 md:gap-y-12">
+            {/* Services header with line */}
+            <div
+              className={`flex items-center gap-4 transition-all duration-1000 ease-out ${
+                isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
+              }`}
+              style={{ transitionDelay: "400ms" }}
+            >
+              <span className="headline-text text-xs text-black font-semibold uppercase tracking-widest">Services</span>
+              <div
+                className="flex-1 h-px bg-[#C6A789] transform origin-left transition-transform duration-1000"
+                style={{
+                  transform: isVisible ? "scaleX(1)" : "scaleX(0)",
+                  transitionDelay: "600ms",
+                }}
+              />
+            </div>
+
+            <div
+              className={`space-y-8 md:space-y-12 transition-all duration-1000 ease-out ${
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+              style={{ transitionDelay: "600ms" }}
+            >
+              <div className="space-y-3 md:space-y-4">
+                <h2 className="headline-text leading-normal text-2xl md:text-4xl font-semibold transition-all duration-500">
+                  {services[currentService].title}
+                </h2>
+                <p className="paragraph-text text-sm md:text-base leading-relaxed transition-all duration-500">
+                  {services[currentService].description}
+                </p>
+              </div>
+
+              <Link href="/book" className="flex items-center gap-x-1.5 group w-fit">
+                <div className="w-fit rounded-full p-1.5 h-auto bg-transparent border-2 border-[#FDC7AA] transition-all duration-300 group-hover:border-[#FFB366] group-hover:shadow-lg">
+                  <Button
+                    className="border border-[#FFBE5D] rounded-3xl px-4 md:px-6 py-5 text-xs font-medium transition-all duration-300 flex items-center gap-2 hover:shadow-md transform group-hover:scale-105"
+                    style={{
+                      background: "linear-gradient(90deg, #FFE3E1 0%, #FFD3B3 53%, #FFDDB9 100%)",
+                      color: "#654625",
+                    }}
+                  >
+                    BOOK A CLASS
+                  </Button>
+                </div>
+                <div className="bg-[#FFDDB9] h-12 w-12 md:h-14 md:w-14 p-2 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:bg-[#FFB366] group-hover:shadow-lg transform group-hover:scale-105 group-hover:rotate-3">
+                  <ChevronRight className="text-[#A56024] size-7 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </div>
+              </Link>
+            </div>
+
+            {/* Navigation */}
+            <div
+              className={`hidden md:flex items-center gap-4 pb-8 transition-all duration-1000 ease-out ${
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+              style={{ transitionDelay: "800ms" }}
+            >
+              <div className="flex gap-2">
+                {services.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentService(index)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 ${
+                      currentService === index ? "bg-[#654625] scale-110" : "bg-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>

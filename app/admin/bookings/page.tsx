@@ -63,6 +63,15 @@ export default async function AdminBookingsPage() {
     }
   }
 
+  const getCustomerName = (notes: string) => {
+    try {
+      const customerData = JSON.parse(notes)
+      return customerData.name || "N/A"
+    } catch {
+      return "N/A"
+    }
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
@@ -92,14 +101,14 @@ export default async function AdminBookingsPage() {
             {bookings?.map((booking) => (
               <TableRow key={booking.id} className="bg-white">
                 <TableCell className="font-mono text-sm">{booking.id.slice(0, 8)}...</TableCell>
-                <TableCell className="font-medium">{booking.name}</TableCell>
+                <TableCell className="font-medium">{getCustomerName(booking.notes)}</TableCell>
                 <TableCell>{formatDate(booking.booking_date)}</TableCell>
                 <TableCell>{booking.events?.name}</TableCell>
                 <TableCell>
                   <Badge className={getPaymentStatusColor(booking.payment_status)}>{booking.payment_status}</Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={getStatusColor(booking.booking_status)}>{booking.booking_status}</Badge>
+                  <Badge className={getStatusColor(booking.status)}>{booking.status}</Badge>
                 </TableCell>
               </TableRow>
             ))}
