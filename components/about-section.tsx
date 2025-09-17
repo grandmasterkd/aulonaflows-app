@@ -9,22 +9,22 @@ const aboutContent = [
   {
     title: "Hi I'm Aulona",
     content:
-      "Welcome to my world of mindful movement and inner transformation. I'm passionate about creating a safe, nurturing space where you can explore the depths of your practice and discover the profound connection between mind, body, and spirit.",
+      "A Yoga Teacher and Sound Therapy Practitioner, but most importantly, someone who believes deeply in the power of self-healing.",
   },
   {
     title: "My Journey",
     content:
-      "My path to yoga began over a decade ago during a challenging period in my life. What started as a search for physical healing evolved into a profound spiritual awakening. I've trained extensively in various yoga traditions, sound healing, and mindfulness practices across India, Bali, and the UK.",
+      "My personal path through growth and healing led me to create nurturing, sacred spaces where others cansafely release, reconnect, and restore balance.",
   },
   {
     title: "My Approach",
     content:
-      "I believe yoga is not about perfect poses but about perfect presence. My teaching style blends traditional wisdom with modern understanding, creating accessible practices that honor both ancient traditions and contemporary needs. Every class is designed to meet you exactly where you are.",
+      "Through yoga, sound therapy, and mindfulness, I guide experiences designed to ground your body, calm your mind, and support emotional release. Every offering is rooted in softness, safety, and alignment.",
   },
   {
     title: "My Philosophy",
     content:
-      "True transformation happens when we turn inward with compassion and curiosity. Through breath, movement, and mindful awareness, we can unlock our innate wisdom and create lasting positive change in our lives and communities.",
+      "True healing starts when we slow down and listen—to our breath, our body, and the wisdom within. Everything you need is already inside you. I'm here to help you come home to it.",
   },
 ]
 
@@ -57,12 +57,12 @@ export function AboutSection() {
   }
 
   return (
-    <section id="about-section" className="min-h-screen grid place-items-center px-8 md:px-24 lg:px-44 overflow-hidden">
-      <div className="container mx-auto">
+    <section id="about-section" className="min-h-screen grid place-items-center px-8 py-16 md:py-0 md:px-24 lg:px-44 overflow-hidden">
+      <div className="container mx-auto]">
         {/* Page 1: Hi I'm Aulona & My Journey */}
         {currentPage === 0 && (
           <div
-            className={`grid md:grid-cols-2 gap-0 items-center transition-all duration-1000 ${
+            className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
             }`}
           >
@@ -74,8 +74,8 @@ export function AboutSection() {
                   isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
                 }`}
               >
-                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[0].title}</h2>
-                <p className="w-full md:max-w-md paragraph-text text-sm leading-relaxed">{aboutContent[0].content}</p>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[0].title}</h2>
+                <p className="w-full md:max-w-md paragraph-text text-sm md:text-base leading-relaxed">{aboutContent[0].content}</p>
               </div>
 
               {/* Container 2 - My Journey */}
@@ -84,14 +84,14 @@ export function AboutSection() {
                   isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
                 }`}
               >
-                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[1].title}</h2>
-                <p className="w-full md:max-w-md paragraph-text text-sm leading-relaxed">{aboutContent[1].content}</p>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[1].title}</h2>
+                <p className="w-full md:max-w-md paragraph-text text-sm md:text-base leading-relaxed">{aboutContent[1].content}</p>
               </div>
             </div>
 
             {/* Right Column - Stacked Images */}
-            <div className="relative mt-0 md:mt-24 min-h-screen flex flex-col items-start justify-center">
-              <div className="relative w-96 h-[500px]">
+            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
+              <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
                 {/* Image 1 - Bottom layer, rotated left */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-300 ${
@@ -119,7 +119,7 @@ export function AboutSection() {
                       : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-32 -translate-y-16">
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-32 -md:translate-y-16">
                     <Image
                       src="/aulona-temp-2.jpg"
                       alt="Yoga studio"
@@ -138,7 +138,7 @@ export function AboutSection() {
                       : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-64 -translate-y-32">
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-64 -md:translate-y-32">
                     <Image
                       src="/aulona-temp-3.jpg"
                       alt="Aulona practicing yoga"
@@ -168,8 +168,8 @@ export function AboutSection() {
                   isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
                 }`}
               >
-                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[2].title}</h2>
-                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[2].content}</p>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[2].title}</h2>
+                <p className="w-full md:max-w-md paragraph-text text-sm md:text-base leading-relaxed">{aboutContent[2].content}</p>
               </div>
 
               {/* Container 2 - My Journey */}
@@ -178,14 +178,14 @@ export function AboutSection() {
                   isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
                 }`}
               >
-                <h2 className="headline-text text-3xl md:text-4xl font-bold">{aboutContent[3].title}</h2>
-                <p className="w-full md:max-w-lg paragraph-text text-sm leading-relaxed">{aboutContent[3].content}</p>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[3].title}</h2>
+                <p className="w-full md:max-w-md paragraph-text text-sm md:text-base leading-relaxed">{aboutContent[3].content}</p>
               </div>
             </div>
 
             {/* Right Column - Stacked Images */}
-            <div className="relative mt-0 md:mt-24 min-h-screen flex flex-col items-end justify-center">
-              <div className="relative w-96 h-[500px]">
+            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
+              <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
                 {/* Image 1 - Bottom layer, rotated left */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-300 ${
@@ -213,7 +213,7 @@ export function AboutSection() {
                       : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform -translate-x-32 -translate-y-16">
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-32 -md:translate-y-16">
                     <Image
                       src="/aulona-temp-5.jpg"
                       alt="Yoga studio"
@@ -232,7 +232,7 @@ export function AboutSection() {
                       : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform -translate-x-64 -translate-y-8">
+                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-64 -md:translate-y-32">
                     <Image
                       src="/aulona-temp-6.jpg"
                       alt="Aulona practicing yoga"
@@ -248,7 +248,7 @@ export function AboutSection() {
         )}
 
         {/* Pagination Controls */}
-        <div className="flex justify-center items-center gap-4 mt-0">
+        <div className="flex justify-center items-center gap-4 mt-0 md:mt-24  mb-4 lg:mb-16">
           <Button
             variant="outline"
             size="icon"

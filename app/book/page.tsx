@@ -6,84 +6,71 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
+import { Search } from "lucide-react"
 
-interface YogaClass {
+interface Event {
   id: string
-  title: string
+  name: string
+  category: string
   description: string
-  start_time: string
-  end_time: string
-  max_capacity: number
+  date_time: string
+  location: string
+  capacity: number
   current_bookings: number
   price: number
+  instructor_name: string
+  image_url: string
   status: string
-  instructor_id: string
-  class_type_id: string
-  // Joined data
-  instructor_name?: string
-  class_type_name?: string
 }
 
 export default function BookingOverviewPage() {
-  const [classes, setClasses] = useState<YogaClass[]>([])
-  const [filteredClasses, setFilteredClasses] = useState<YogaClass[]>([])
+  const [events, setEvents] = useState<Event[]>([])
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [activeFilter, setActiveFilter] = useState("All Events")
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
-  const filters = ["All Events", "Yoga Classes", "Workshops", "Sound Baths"]
+  const filters = ["All Events", "Yoga Classes", "Sound Therapy", "Wellness Events", "Corporate & Private Bookings"]
 
   useEffect(() => {
-    fetchClasses()
+    fetchEvents()
   }, [])
 
-  const filterClasses = useCallback(() => {
-    let filtered = classes
+  const filterEvents = useCallback(() => {
+    let filtered = events
 
-    // Apply category filter - for now, treat all as yoga classes
     if (activeFilter !== "All Events") {
-      // Since we only have yoga_classes table, we'll show all for any filter
-      // In a real implementation, you might filter by class_type
+      filtered = filtered.filter((event) => event.category === activeFilter)
     }
 
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(
-        (yogaClass) =>
-          yogaClass.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (yogaClass.description && yogaClass.description.toLowerCase().includes(searchQuery.toLowerCase())),
+        (event) =>
+          event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase())),
       )
     }
 
-    setFilteredClasses(filtered)
-  }, [classes, activeFilter, searchQuery])
+    setFilteredEvents(filtered)
+  }, [events, activeFilter, searchQuery])
 
   useEffect(() => {
-    filterClasses()
-  }, [filterClasses])
+    filterEvents()
+  }, [filterEvents])
 
-  const fetchClasses = async () => {
+  const fetchEvents = async () => {
     const supabase = createClient()
     const { data, error } = await supabase
-      .from("yoga_classes")
-      .select(`
-        *,
-        instructors(name),
-        class_types(name)
-      `)
+      .from("events")
+      .select("*")
       .eq("status", "active")
-      .gte("start_time", new Date().toISOString())
-      .order("start_time", { ascending: true })
+      .gte("date_time", new Date().toISOString())
+      .order("date_time", { ascending: true })
 
     if (error) {
-      console.error("Error fetching classes:", error)
+      console.error("Error fetching events:", error)
     } else {
-      const transformedData = (data || []).map((item) => ({
-        ...item,
-        instructor_name: item.instructors?.name || "TBA",
-        class_type_name: item.class_types?.name || "Yoga Class",
-      }))
-      setClasses(transformedData)
+      setEvents(data || [])
     }
     setIsLoading(false)
   }
@@ -99,35 +86,36 @@ export default function BookingOverviewPage() {
     })
   }
 
-  const isFullyBooked = (yogaClass: YogaClass) => {
-    return yogaClass.current_bookings >= yogaClass.max_capacity
+  const isFullyBooked = (event: Event) => {
+    return event.current_bookings >= event.capacity
   }
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+    return <div className="min-h-screen flex items-center justify-center animate-pulse"><Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} /></div>
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="py-20 px-8 md:px-16 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-start">
             {/* Left Column */}
-            <div className="space-y-8">
-              <h1 className="headline-text text-4xl md:text-5xl font-bold">Begin Your Journey Inward Today</h1>
+            <div className="space-y-4 md:space-y-8">
+              <h1 className="headline-text max-w-md leading-normal md:leading-normal text-4xl md:text-5xl font-bold">Begin Your Journey Inward Today</h1>
               <div className="relative">
                 <Input
                   placeholder="Search for classes, workshops, or events..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="rounded-3xl px-6 py-4 text-lg border-2 border-[#C6A789] focus:border-[#654625]"
+                  className="border-none bg-gray-100 rounded-full w-full md:w-[80%] h-14 text-base indent-10"
                 />
+                <Search className="size-5 absolute left-6 top-4" />
               </div>
             </div>
 
             {/* Right Column */}
-            <div className="aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
+            <div className="aspect-[4/3] bg-gray-200 rounded-3xl overflow-hidden">
               <Image
                 src="/placeholder.svg?height=400&width=600"
                 alt="Previous yoga events"
@@ -141,16 +129,16 @@ export default function BookingOverviewPage() {
       </section>
 
       {/* Body Section */}
-      <section className="py-16 px-8 md:px-16">
-        <div className="max-w-7xl mx-auto space-y-12">
+      <section className="pb-8 md:pb-0 md:py-16 px-8 md:px-16">
+        <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
           {/* Filter Toggle */}
           <div className="flex justify-center">
-            <div className="relative bg-gray-100 rounded-3xl p-1 flex">
+            <div className="w-full overflow-x-auto relative bg-gray-200 rounded-3xl p-1.5 flex">
               {filters.map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`px-6 py-3 rounded-3xl text-sm font-medium transition-all ${
+                  className={`px-6 py-3 rounded-full text-xs md:text-sm whitespace-nowrap font-medium transition-all ${
                     activeFilter === filter ? "bg-black text-white" : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
@@ -160,22 +148,22 @@ export default function BookingOverviewPage() {
             </div>
           </div>
 
-          {/* Classes Grid */}
+          {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredClasses.map((yogaClass) => (
-              <Card key={yogaClass.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+            {filteredEvents.map((event) => (
+              <Card key={event.id} className="bg-gray-200 overflow-hidden group hover:shadow-lg transition-shadow">
                 <div
                   className="h-64 bg-cover bg-center relative"
                   style={{
-                    backgroundImage: `url(/placeholder.svg?height=256&width=384&query=yoga class)`,
+                    backgroundImage: `url(${event.image_url || "/diverse-yoga-class.png"})`,
                   }}
                 >
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
                   <div className="absolute bottom-4 left-4 text-white space-y-2">
-                    <h3 className="text-xl font-bold">{yogaClass.title}</h3>
-                    <p className="text-sm opacity-90 line-clamp-2">{yogaClass.description}</p>
+                    <h3 className="text-xl font-bold">{event.name}</h3>
+                    <p className="text-sm opacity-90 line-clamp-2">{event.description}</p>
                   </div>
-                  {isFullyBooked(yogaClass) && (
+                  {isFullyBooked(event) && (
                     <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                       Fully Booked
                     </div>
@@ -184,23 +172,26 @@ export default function BookingOverviewPage() {
                 <CardContent className="p-6 space-y-4">
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Date:</span> {formatDate(yogaClass.start_time)}
+                      <span className="font-medium">Date:</span> {formatDate(event.date_time)}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Type:</span> {yogaClass.class_type_name}
+                      <span className="font-medium">Type:</span> {event.category}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Instructor:</span> {yogaClass.instructor_name}
+                      <span className="font-medium">Instructor:</span> {event.instructor_name}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <span className="font-medium">Spaces:</span> {yogaClass.current_bookings}/{yogaClass.max_capacity}
+                      <span className="font-medium">Spaces:</span> {event.current_bookings}/{event.capacity}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Location:</span> {event.location}
                     </p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-[#654625]">£{yogaClass.price}</span>
-                    {!isFullyBooked(yogaClass) ? (
+                    <span className="text-2xl font-bold text-[#654625]">£{event.price}</span>
+                    {!isFullyBooked(event) ? (
                       <Link
-                        href={`/book/${yogaClass.id}`}
+                        href={`/book/${event.id}`}
                         className="brand-bg-brown brand-text-cream px-6 py-2 rounded-3xl font-medium hover:bg-opacity-90 transition-all"
                       >
                         Book Now
@@ -216,9 +207,9 @@ export default function BookingOverviewPage() {
             ))}
           </div>
 
-          {filteredClasses.length === 0 && (
+          {filteredEvents.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-xl text-gray-600">No classes found matching your criteria.</p>
+              <p className="text-xl text-gray-600">No events found matching your criteria.</p>
               <p className="text-gray-500 mt-2">Try adjusting your search or filter options.</p>
             </div>
           )}

@@ -1,71 +1,85 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown, ChevronUp } from "lucide-react"
-
-const faqs = [
-  {
-    question: "Do I need any prior experience to join your yoga classes?",
-    answer:
-      "Not at all! Our classes welcome practitioners of all levels, from complete beginners to advanced yogis. I provide modifications and variations for every pose, ensuring everyone can participate safely and comfortably. Your willingness to explore and be present is all you need to bring.",
-  },
-  {
-    question: "What should I bring to my first class?",
-    answer:
-      "Just bring yourself and wear comfortable clothing that allows you to move freely. We provide all necessary equipment including mats, blocks, bolsters, and blankets. If you have your own mat and prefer to use it, you're welcome to bring it along.",
-  },
-  {
-    question: "How do sound therapy sessions work?",
-    answer:
-      "During sound therapy sessions, you'll lie comfortably while I play various healing instruments including crystal singing bowls, gongs, and chimes. The vibrations help calm the nervous system, reduce stress, and promote deep relaxation. No experience is needed - simply allow yourself to receive the healing sounds.",
-  },
-  {
-    question: "Can you accommodate corporate bookings and private sessions?",
-    answer:
-      "I offer customized sessions for businesses, private groups, and individuals. Corporate sessions can be tailored to fit your workplace schedule and space, while private sessions allow for personalized attention to your specific needs and goals. Contact me to discuss your requirements.",
-  },
-]
+import { useState, useEffect, useRef } from "react"
+import { ChevronDown } from "lucide-react"
+import { faqsData } from "@/utils/faqs-data"
 
 export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.1 },
+    )
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index)
   }
 
   return (
-    <section className="py-20 px-8 md:px-16 bg-white">
-      <div className="max-w-4xl mx-auto">
-        {/* Section Title */}
-        <div className="text-center mb-16">
-          <h2 className="headline-text leading-normal text-4xl font-semibold">Frequently Asked Questions</h2>
+    <main ref={sectionRef} className="py-12 md:py-24 px-8 md:px-24 lg:px-44 bg-white">
+      <section className="container mx-auto bg-[#57463B] w-full h-full md:h-[540px] rounded-[1.5rem] md:rounded-[2rem] grid grid-cols-1 md:grid-cols-2 p-6 md:p-11 overflow-auto">   
+           <div
+          className={`col-span-1 text-center mb-6 transition-all duration-1000 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+          }`}
+        >
+          <h2 className="md:mx-0 mx-auto headline-text p-0 md:p-4 max-w-sm text-center md:text-left text-[#E3C9A3] leading-normal lg:leading-normal text-xl lg:text-4xl font-bold">Frequently Asked Questions</h2>
         </div>
 
-        {/* FAQ Items */}
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div key={index} className=" overflow-hidden">
+        <div className="col-span-1 space-y-2 overflow-y-auto" >
+          {faqsData.map((faq, index) => (
+            <div
+              key={index}
+              className={` bg-[#C6A789]/70 rounded-xl  md:rounded-2xl overflow-hidden transition-all duration-700 ease-out ${
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
+              style={{
+                transitionDelay: isVisible ? `${index * 100}ms` : "0ms",
+              }}
+            >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className="w-full text-left p-3 md:p-5 flex gap-2 items-center justify-between hover:bg-[#C6A789]/20 transition-all duration-300 ease-out"
               >
-                <span className="paragraph-text text-lg font-medium">{faq.question}</span>
-                {openIndex === index ? (
-                  <ChevronUp className="w-5 h-5 text-[#C6A789] flex-shrink-0" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-[#C6A789] flex-shrink-0" />
-                )}
+                <span className="text-[#FFE7BB] text-base md:text-lg font-medium pr-4">{faq.question}</span>
+                <div
+                  className={`transition-transform duration-300 ease-out ${
+                    openIndex === index ? "rotate-180" : "rotate-0"
+                  }`}
+                >
+                  <ChevronDown className="w-5 h-5 text-white flex-shrink-0" />
+                </div>
               </button>
 
-              {openIndex === index && (
-                <div className="px-6 pb-4">
-                  <p className="text-black leading-relaxed">{faq.answer}</p>
+              <div
+                className={`transition-all duration-500 ease-out overflow-hidden ${
+                  openIndex === index ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="px-3 md:px-5 pb-4">
+                  <p className="text-white text-sm leading-relaxed">{faq.answer}</p>
                 </div>
-              )}
+              </div>
             </div>
           ))}
-        </div>
-      </div>
-    </section>
+          </div>
+        </section>
+    
+    </main>
   )
 }
