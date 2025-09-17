@@ -97,7 +97,7 @@ export default function BookingOverviewPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-20 px-8 md:px-16 bg-white">
+      <section className="py-20 px-8 md:px-36">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-start">
             {/* Left Column */}
@@ -129,11 +129,11 @@ export default function BookingOverviewPage() {
       </section>
 
       {/* Body Section */}
-      <section className="pb-8 md:pb-0 md:py-16 px-8 md:px-16">
+      <section className="pb-8 md:pb-0 py-0 md:py-16 px-8 md:px-36">
         <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
           {/* Filter Toggle */}
           <div className="flex justify-center">
-            <div className="w-full overflow-x-auto relative bg-gray-200 rounded-3xl p-1.5 flex">
+            <div className="w-full md:w-fit overflow-x-auto relative bg-gray-200 rounded-full p-1.5 flex">
               {filters.map((filter) => (
                 <button
                   key={filter}
@@ -149,19 +149,24 @@ export default function BookingOverviewPage() {
           </div>
 
           {/* Events Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-0 md:pb-12">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className="bg-gray-200 overflow-hidden group hover:shadow-lg transition-shadow">
+              <Card key={event.id} className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow">
                 <div
                   className="h-64 bg-cover bg-center relative"
                   style={{
                     backgroundImage: `url(${event.image_url || "/diverse-yoga-class.png"})`,
                   }}
                 >
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
-                  <div className="absolute bottom-4 left-4 text-white space-y-2">
-                    <h3 className="text-xl font-bold">{event.name}</h3>
-                    <p className="text-sm opacity-90 line-clamp-2">{event.description}</p>
+                  <div className="absolute inset-0 transition-colors" />
+                  <div className="absolute bottom-2 left-6 right-6 text-white space-y-3">
+                    <div>
+                    <h3 className="text-xl text-black font-medium">{event.name}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-1">{event.description}</p>
+                    </div>
+                 
+
+                    <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white text-black text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
                   </div>
                   {isFullyBooked(event) && (
                     <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -169,7 +174,7 @@ export default function BookingOverviewPage() {
                     </div>
                   )}
                 </div>
-                <CardContent className="p-6 space-y-4">
+                <CardContent className="hidden p-6 space-y-4">
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Date:</span> {formatDate(event.date_time)}
