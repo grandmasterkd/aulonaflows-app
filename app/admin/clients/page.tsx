@@ -32,6 +32,8 @@ interface ClientBooking {
 
 export default function AdminClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
+  const [filteredClients, setFilteredClients] = useState<Client[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientBookings, setClientBookings] = useState<ClientBooking[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -42,6 +44,19 @@ export default function AdminClientsPage() {
     checkAuth()
     fetchClients()
   }, [])
+
+  useEffect(() => {
+    const filtered = clients.filter((client) => {
+      const name = client.name?.toLowerCase() || ""
+      const email = client.email?.toLowerCase() || ""
+      const phone = client.phone?.toLowerCase() || ""
+      const location = client.location?.toLowerCase() || ""
+      const search = searchTerm.toLowerCase()
+
+      return name.includes(search) || email.includes(search) || phone.includes(search) || location.includes(search)
+    })
+    setFilteredClients(filtered)
+  }, [searchTerm, clients])
 
   const checkAuth = async () => {
     const supabase = createClient()
@@ -68,6 +83,7 @@ export default function AdminClientsPage() {
     }
 
     setClients(clientsData || [])
+    setFilteredClients(clientsData || [])
     setIsLoading(false)
   }
 
@@ -182,7 +198,12 @@ export default function AdminClientsPage() {
               <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-medium">All Clients</h2>
-                  <Input placeholder="Search clients..." className="w-[250px] h-12 rounded-lg bg-white border-none" />
+                  <Input
+                    placeholder="Search clients..."
+                    className="w-[250px] h-12 rounded-lg bg-white border-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -200,7 +221,7 @@ export default function AdminClientsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clients.map((client) => (
+                    {filteredClients.map((client) => (
                       <TableRow key={client.email}>
                         <TableCell className="font-medium">{client.name}</TableCell>
                         <TableCell>{client.email}</TableCell>

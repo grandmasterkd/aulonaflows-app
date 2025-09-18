@@ -1,23 +1,71 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { ArrowLeft } from "lucide-react"
+import Image from "next/image"
 
-export default async function AdminPaymentsPage() {
-  const supabase = await createClient()
+interface Payment {
+  id: string
+  name: string
+  event: string
+  created_at: string
+  amount: number
+  payment_method: string
+  payment_status: string
+}
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-  if (error || !user) {
-    redirect("/admin/login")
+export default function AdminPaymentsPage() {
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [filteredPayments, setFilteredPayments] = useState<Payment[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    checkAuth()
+    fetchPayments()
+  }, [])
+
+  useEffect(() => {
+    const filtered = payments.filter((payment) => {
+      const name = payment.name.toLowerCase()
+      const event = payment.event.toLowerCase()
+      const paymentId = payment.id.toLowerCase()
+      const search = searchTerm.toLowerCase()
+
+      return name.includes(search) || event.includes(search) || paymentId.includes(search)
+    })
+    setFilteredPayments(filtered)
+  }, [searchTerm, payments])
+
+  const checkAuth = async () => {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      router.push("/admin/login")
+    }
   }
 
-  const { data: payments } = await supabase.from("payments").select("*").order("created_at", { ascending: false })
+  const fetchPayments = async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase.from("payments").select("*").order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching payments:", error)
+    } else {
+      setPayments(data || [])
+      setFilteredPayments(data || [])
+    }
+    setIsLoading(false)
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
@@ -41,6 +89,14 @@ export default async function AdminPaymentsPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center animate-pulse">
+        <Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} />
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
@@ -53,7 +109,12 @@ export default async function AdminPaymentsPage() {
               <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-medium">All Payments</h2>
-                  <Input placeholder="Search payments..." className="w-[250px] h-12 rounded-lg bg-white border-none" />
+                  <Input
+                    placeholder="Search payments..."
+                    className="w-[250px] h-12 rounded-lg bg-white border-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -71,7 +132,7 @@ export default async function AdminPaymentsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {payments?.map((payment) => (
+                    {filteredPayments?.map((payment) => (
                       <TableRow key={payment.id}>
                         <TableCell className="font-mono text-sm">{payment.id.slice(0, 8)}...</TableCell>
                         <TableCell className="font-medium">{payment.name}</TableCell>

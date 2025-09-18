@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { createClient } from "@/lib/supabase/server"
+import { sendBookingConfirmationEmail } from "@/lib/email"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-08-27.basil",
@@ -39,19 +40,20 @@ export async function POST(request: NextRequest) {
       console.log("[v0] Session metadata:", session.metadata)
       console.log("[v0] Session amount:", session.amount_total)
 
-      let customerData: any = {}
+      let bookingData: any = {}
       try {
-        customerData = session.metadata?.notes ? JSON.parse(session.metadata.notes) : {}
+        bookingData = session.metadata?.notes ? JSON.parse(session.metadata.notes) : {}
       } catch (parseError) {
-        console.error("[v0] Error parsing customer data:", parseError)
-        customerData = {}
+        console.error("[v0] Error parsing booking data:", parseError)
+        bookingData = {}
       }
 
-      const customerEmail = customerData.email || session.customer_details?.email
-      const customerName =
-        customerData.name || session.customer_details?.name || session.metadata?.customerName || "Unknown"
+      const customerEmail = bookingData.email || session.customer_details?.email
+      const customerName = bookingData.name || session.customer_details?.name || "Unknown"
+      const customerPhone = bookingData.phone || ""
+      const specialRequirements = bookingData.notes || ""
 
-      console.log("[v0] Customer data:", { customerEmail, customerName })
+      console.log("[v0] Customer data:", { customerEmail, customerName, customerPhone })
 
       if (customerEmail) {
         console.log("[v0] Checking for existing client with email:", customerEmail)
@@ -73,7 +75,7 @@ export async function POST(request: NextRequest) {
             .insert({
               name: customerName,
               email: customerEmail,
-              phone: customerData.phone || null,
+              phone: customerPhone,
               location: "Glasgow",
               booking_count: 1,
             })
@@ -112,13 +114,20 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Missing event ID" }, { status: 500 })
       }
 
+      const notesObject = {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone,
+        message: specialRequirements,
+      }
+
       const { data: booking, error: bookingError } = await supabase
         .from("bookings")
         .insert({
           user_id: null,
-          class_id: eventId, // This should be a valid UUID from the events table
+          class_id: eventId,
           booking_date: new Date().toISOString(),
-          notes: session.metadata?.notes || "",
+          notes: JSON.stringify(notesObject),
           payment_status: "paid",
           status: "confirmed",
         })
@@ -131,6 +140,22 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("[v0] Booking created:", booking)
+
+      console.log("[v0] Updating event booking count")
+      const { error: eventUpdateError } = await supabase
+        .from("events")
+        .update({
+          booking_count: (await supabase
+            .from("events")
+            .select("booking_count")
+            .eq("id", eventId)
+            .single()).data?.booking_count + 1,
+        })
+        .eq("id", eventId)
+
+      if (eventUpdateError) {
+        console.error("[v0] Error updating event booking count:", eventUpdateError)
+      }
 
       // Get event data
       console.log("[v0] Fetching event data for ID:", eventId)
@@ -168,6 +193,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Failed to create payment record" }, { status: 500 })
       } else {
         console.log("[v0] Payment record created:", payment)
+      }
+
+      if (customerEmail && eventData?.name) {
+        console.log("[v0] Sending confirmation email to:", customerEmail)
+        const emailResult = await sendBookingConfirmationEmail({
+          customerName,
+          customerEmail,
+          eventName: eventData.name,
+          bookingDate: booking.booking_date,
+          amount: (session.amount_total || 0) / 100,
+          specialRequirements: specialRequirements || undefined,
+        })
+
+        if (emailResult.success) {
+          console.log("[v0] Confirmation email sent successfully")
+        } else {
+          console.error("[v0] Failed to send confirmation email:", emailResult.error)
+          // Don't fail the webhook if email fails - booking is still valid
+        }
       }
 
       console.log("[v0] Payment processing completed successfully for session:", session.id)

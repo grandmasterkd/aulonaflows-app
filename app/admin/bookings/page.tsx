@@ -1,35 +1,82 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { ArrowLeft } from "lucide-react"
+import Image from "next/image"
 
-export default async function AdminBookingsPage() {
-  const supabase = await createClient()
+interface Booking {
+  id: string
+  booking_date: string
+  notes: string
+  payment_status: string
+  status: string
+  events: {
+    name: string
+    date_time: string
+  } | null
+}
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-  if (error || !user) {
-    redirect("/admin/login")
+export default function AdminBookingsPage() {
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    checkAuth()
+    fetchBookings()
+  }, [])
+
+  useEffect(() => {
+    const filtered = bookings.filter((booking) => {
+      const customerName = getCustomerName(booking.notes).toLowerCase()
+      const eventName = booking.events?.name?.toLowerCase() || ""
+      const bookingId = booking.id.toLowerCase()
+      const search = searchTerm.toLowerCase()
+
+      return customerName.includes(search) || eventName.includes(search) || bookingId.includes(search)
+    })
+    setFilteredBookings(filtered)
+  }, [searchTerm, bookings])
+
+  const checkAuth = async () => {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      router.push("/admin/login")
+    }
   }
 
-  // Get bookings with event details
-  const { data: bookings } = await supabase
-    .from("bookings")
-    .select(
-      `
-      *,
-      events (
-        name,
-        date_time
-      )
-    `,
-    )
-    .order("created_at", { ascending: false })
+  const fetchBookings = async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from("bookings")
+      .select(`
+        *,
+        events (
+          name,
+          date_time
+        )
+      `)
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching bookings:", error)
+    } else {
+      setBookings(data || [])
+      setFilteredBookings(data || [])
+    }
+    setIsLoading(false)
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
@@ -74,6 +121,14 @@ export default async function AdminBookingsPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center animate-pulse">
+        <Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} />
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
@@ -86,7 +141,12 @@ export default async function AdminBookingsPage() {
               <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-medium">All Bookings</h2>
-                  <Input placeholder="Search bookings..." className="max-w-xs h-12 rounded-lg bg-white border-none" />
+                  <Input
+                    placeholder="Search bookings..."
+                    className="max-w-xs h-12 rounded-lg bg-white border-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
               <div className=" overflow-hidden">
@@ -102,7 +162,7 @@ export default async function AdminBookingsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {bookings?.map((booking) => (
+                    {filteredBookings?.map((booking) => (
                       <TableRow key={booking.id}>
                         <TableCell className="text-sm">{booking.id.slice(0, 8)}...</TableCell>
                         <TableCell className="font-medium">{getCustomerName(booking.notes)}</TableCell>

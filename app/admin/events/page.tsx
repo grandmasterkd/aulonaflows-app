@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -24,7 +25,7 @@ interface Event {
   date_time: string
   location: string
   capacity: number
-  current_bookings: number
+  booking_count: number
   price: number
   instructor_name: string
   image_url: string
@@ -200,13 +201,13 @@ export default function AdminEventsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800  h-8 rounded-lg"
+        return "bg-green-100 text-green-800"
       case "cancelled":
-        return "bg-red-100 text-red-800  h-8 rounded-lg"
+        return "bg-red-100 text-red-800"
       case "completed":
-        return "bg-gray-100 text-gray-800  h-8 rounded-lg"
+        return "bg-gray-100 text-gray-800"
       default:
-        return "bg-gray-100 text-gray-800  h-8 rounded-lg"
+        return "bg-gray-100 text-gray-800"
     }
   }
 
@@ -297,7 +298,7 @@ export default function AdminEventsPage() {
                         <TableCell>{formatDate(event.date_time)}</TableCell>
                         <TableCell>{event.location}</TableCell>
                         <TableCell>{event.capacity}</TableCell>
-                        <TableCell>{event.current_bookings}</TableCell>
+                        <TableCell>{event.booking_count || 0}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(event.status)}>{event.status}</Badge>
                         </TableCell>
@@ -447,11 +448,10 @@ export default function AdminEventsPage() {
                           onChange={handleImageUpload}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
-                        <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-gray-400 transition-colors cursor-pointer">
-                          <Plus className="size-5 text-gray-400" />
-                          <p className="w-auto text-xs text-gray-500 text-center mt-1">Choose file</p>
+                        <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-gray-400 transition-colors cursor-pointer">
+                          <Plus className="w-6 h-6 text-gray-400" />
                         </div>
-                        
+                        <p className="text-xs text-gray-500 text-center mt-1">Choose file</p>
                       </div>
 
                       {/* Display uploaded image */}
@@ -460,7 +460,7 @@ export default function AdminEventsPage() {
                           <img
                             src={formData.image_url || "/placeholder.svg"}
                             alt="Event preview"
-                            className="w-24 h-24 object-cover rounded-lg"
+                            className="w-20 h-20 object-cover rounded-lg border"
                           />
                           <button
                             type="button"
