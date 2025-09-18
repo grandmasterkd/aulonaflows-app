@@ -28,7 +28,7 @@ export function FooterSection() {
   return (
     <section
       ref={sectionRef}
-      className="min-h-screen grid place-items-center px-4 sm:px-8 md:px-16 lg:px-24 xl:px-44 brand-bg-cream"
+      className="min-h-screen grid place-items-center py-12 md:py-0 px-8 md:px-16 lg:px-24 xl:px-44 brand-bg-cream"
     >
       <div className="container mx-auto w-full">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-16">
@@ -176,22 +176,22 @@ export function FooterSection() {
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-0">
+          <div className="flex flex-col lg:flex-row items-start justify-between gap-4 lg:gap-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               <Link
                 href="https://www.instagram.com/aulonaflows/"
                 target="_blank"
-                className="flex items-center gap-x-2 text-[#9A7153] hover:text-[#7A5A3D] transition-colors duration-300 group"
+                className="text-[#9A7153] hover:text-[#7A5A3D] transition-colors duration-300 group"
               >
-                <span>Follow Us</span>
-                <Instagram className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                <span className="block" >Follow Us</span>
+                <Instagram className="block w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
                
               </Link>
-              <div className="text-sm lg:text-base">
-                <span className="text-[#9A7153]">Contact</span> +079 4668 4664
+              <div className="hidden text-sm lg:text-base">
+                <span className="text-[#9A7153] ">Contact</span> +079 4668 4664
               </div>
-              <Link href="mailto:dumaniaulona@hotmail.com" className="text-sm lg:text-base">
-                <span className="text-[#9A7153]">Email</span> dumaniaulona@hotmail.com
+              <Link href="mailto:contact@aulonaflows.com" className="text-sm lg:text-base">
+                <span className="block text-[#9A7153]">Email</span> contact@aulonaflows.com
               </Link>
             </div>
             <span className="text-xs sm:text-sm text-gray-600">All Rights Reserved. Copyright 2025</span>
