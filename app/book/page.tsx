@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
-import { Search } from "lucide-react"
+import { ArrowLeft, Search } from "lucide-react"
 
 interface Event {
   id: string
@@ -97,11 +97,18 @@ export default function BookingOverviewPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
+      
+
       <section className="py-20 px-8 md:px-36">
+
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-start">
             {/* Left Column */}
-            <div className="space-y-4 md:space-y-8">
+            <div className="space-y-4 md:space-y-6">
+              <Link href="/" className="inline-flex items-center gap-2 text-[#654625] hover:text-[#4a3319] mb-6">
+                <ArrowLeft size={20} />
+                Back
+              </Link>
               <h1 className="headline-text max-w-md leading-normal md:leading-normal text-4xl md:text-5xl font-bold">Begin Your Journey Inward Today</h1>
               <div className="relative">
                 <Input
@@ -117,7 +124,7 @@ export default function BookingOverviewPage() {
             {/* Right Column */}
             <div className="aspect-[4/3] bg-gray-200 rounded-3xl overflow-hidden">
               <Image
-                src="/placeholder.svg?height=400&width=600"
+                src="/services-temp-2.jpg"
                 alt="Previous yoga events"
                 width={600}
                 height={400}
@@ -151,22 +158,21 @@ export default function BookingOverviewPage() {
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-0 md:pb-12">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow">
+              <div key={event.id} className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow">
                 <div
-                  className="h-64 bg-cover bg-center relative"
-                  style={{
-                    backgroundImage: `url(${event.image_url || "/diverse-yoga-class.png"})`,
-                  }}
+                  className="h-80 bg-cover relative"
+                 
                 >
+                  <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
-                  <div className="absolute bottom-2 left-6 right-6 text-white space-y-3">
+                  <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div>
-                    <h3 className="text-xl text-black font-medium">{event.name}</h3>
-                    <p className="text-sm text-gray-600 line-clamp-1">{event.description}</p>
+                    <h3 className="text-xl text-white font-medium">{event.name}</h3>
+                    <p className="text-xs text-gray-200 line-clamp-1">{event.description}</p>
                     </div>
                  
 
-                    <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white text-black text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
+                    <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
                   </div>
                   {isFullyBooked(event) && (
                     <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -208,7 +214,7 @@ export default function BookingOverviewPage() {
                     )}
                   </div>
                 </CardContent>
-              </Card>
+              </div>
             ))}
           </div>
 
