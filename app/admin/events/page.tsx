@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,8 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Edit, Plus } from "lucide-react"
+import { ArrowLeft, Plus, X } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { AdminSidebar } from "@/components/admin-sidebar"
 import Image from "next/image"
 
 interface Event {
@@ -36,6 +36,8 @@ export default function AdminEventsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -54,6 +56,15 @@ export default function AdminEventsPage() {
     checkAuth()
     fetchEvents()
   }, [])
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [message])
 
   const checkAuth = async () => {
     const supabase = createClient()
@@ -79,7 +90,22 @@ export default function AdminEventsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!formData.category) {
+      setMessage({
+        type: "error",
+        text: "Please select a category for the event.",
+      })
+      return
+    }
+
     const supabase = createClient()
+
+    let imageUrl = formData.image_url || "/placeholder.svg?height=400&width=600"
+
+    if (selectedImage) {
+      imageUrl = formData.image_url
+    }
 
     const eventData = {
       name: formData.name,
@@ -90,7 +116,7 @@ export default function AdminEventsPage() {
       capacity: Number.parseInt(formData.capacity),
       price: Number.parseFloat(formData.price),
       instructor_name: formData.instructor_name,
-      image_url: formData.image_url || "/placeholder.svg?height=400&width=600",
+      image_url: imageUrl,
       status: formData.status,
     }
 
@@ -105,9 +131,18 @@ export default function AdminEventsPage() {
 
     if (error) {
       console.error("Error saving event:", error)
+      setMessage({
+        type: "error",
+        text: "Failed to save event. Please try again.",
+      })
     } else {
+      setMessage({
+        type: "success",
+        text: `Event ${editingEvent ? "updated" : "created"} successfully.`,
+      })
       setIsDialogOpen(false)
       setEditingEvent(null)
+      setSelectedImage(null)
       resetForm()
       fetchEvents()
     }
@@ -126,6 +161,7 @@ export default function AdminEventsPage() {
       image_url: "",
       status: "active",
     })
+    setSelectedImage(null)
   }
 
   const handleEdit = (event: Event) => {
@@ -164,213 +200,299 @@ export default function AdminEventsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800  h-8 rounded-lg"
       case "cancelled":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800  h-8 rounded-lg"
       case "completed":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800  h-8 rounded-lg"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800  h-8 rounded-lg"
+    }
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setSelectedImage(file)
+      const imageUrl = URL.createObjectURL(file)
+      setFormData({ ...formData, image_url: imageUrl })
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null)
+    setFormData({ ...formData, image_url: "" })
+    const fileInput = document.getElementById("image_upload") as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ""
     }
   }
 
   if (isLoading) {
-     return <div className="min-h-screen flex items-center justify-center animate-pulse"><Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} /></div>
-   }
+    return (
+      <div className="min-h-screen flex items-center justify-center animate-pulse">
+        <Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Events</h1>
+    <div className="flex h-screen bg-gray-50">
+      <AdminSidebar />
+      <main className="flex-1 overflow-auto md:ml-0">
+        <div className="p-6 md:p-8">
+          <div className="space-y-6">
+            <ArrowLeft
+              className="size-6 text-gray-500 cursor-pointer hover:text-gray-700"
+              onClick={() => window.history.back()}
+            />
 
-      {/* Table Header with Search and Add Button */}
-      <div className="brand-bg-beige/40 p-4 rounded-lg">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">All Events</h2>
-          <div className="flex gap-4">
-            <Input placeholder="Search events..." className="max-w-sm" />
-            <Button onClick={handleAddNew} className="brand-text-yellow bg-[#F7BA4C] hover:bg-[#F7BA4C]/90 text-black">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Event
-            </Button>
+            {message && (
+              <div
+                className={`p-4 rounded-lg ${
+                  message.type === "success"
+                    ? "bg-green-100 text-green-800 border border-green-200"
+                    : "bg-red-100 text-red-800 border border-red-200"
+                }`}
+              >
+                {message.text}
+              </div>
+            )}
+
+            <section>
+              <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-medium">All Events</h2>
+                  <div className="flex gap-2">
+                    <Input placeholder="Search events..." className="w-[250px] h-12 rounded-lg bg-white border-none" />
+                    <Button
+                      onClick={handleAddNew}
+                      className="brand-text-yellow h-12 px-3 rounded-lg bg-[#F7BA4C] hover:bg-[#F7BA4C]/90 text-black"
+                    >
+                      <Plus className="w-4 h-4 mr-0" />
+                      Add Event
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className=" overflow-hidden">
+                <Table>
+                  <TableHeader className="h-14 brand-bg-beige">
+                    <TableRow>
+                      <TableHead className="text-[#57463B] font-semibold">Name</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Category</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Date & Time</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Location</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Capacity</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Booked</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Status</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {events.map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell className="font-medium">{event.name}</TableCell>
+                        <TableCell>{event.category}</TableCell>
+                        <TableCell>{formatDate(event.date_time)}</TableCell>
+                        <TableCell>{event.location}</TableCell>
+                        <TableCell>{event.capacity}</TableCell>
+                        <TableCell>{event.current_bookings}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(event.status)}>{event.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div
+                            className="cursor-pointer bg-[#73B1EA] flex items-center justify-center h-8 w-fit p-0 px-4 rounded-lg"
+                            onClick={() => handleEdit(event)}
+                          >
+                            Edit
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </section>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{editingEvent ? "Edit Event" : "Add New Event"}</DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="name">Event Name</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="category">Category</Label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(value) => setFormData({ ...formData, category: value })}
+                        required
+                      >
+                        <SelectTrigger className={!formData.category ? "border-red-300" : ""}>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Yoga Classes">Yoga Classes</SelectItem>
+                          <SelectItem value="Sound Therapy">Sound Therapy</SelectItem>
+                          <SelectItem value="Wellness Events">Wellness Events</SelectItem>
+                          <SelectItem value="Corporate & Private Bookings">Corporate & Private Bookings</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="date_time">Date & Time</Label>
+                      <Input
+                        id="date_time"
+                        type="datetime-local"
+                        value={formData.date_time}
+                        onChange={(e) => setFormData({ ...formData, date_time: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="location">Location</Label>
+                      <Input
+                        id="location"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="capacity">Capacity</Label>
+                      <Input
+                        id="capacity"
+                        type="number"
+                        value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="price">Price (£)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="status">Status</Label>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value) => setFormData({ ...formData, status: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="instructor_name">Instructor Name</Label>
+                    <Input
+                      id="instructor_name"
+                      value={formData.instructor_name}
+                      onChange={(e) => setFormData({ ...formData, instructor_name: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="image_upload">Event Image</Label>
+                    <div className="flex items-start gap-3 mt-2">
+                      {/* Add image square */}
+                      <div className="relative">
+                        <input
+                          id="image_upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center hover:border-gray-400 transition-colors cursor-pointer">
+                          <Plus className="size-5 text-gray-400" />
+                          <p className="w-auto text-xs text-gray-500 text-center mt-1">Choose file</p>
+                        </div>
+                        
+                      </div>
+
+                      {/* Display uploaded image */}
+                      {formData.image_url && (
+                        <div className="relative">
+                          <img
+                            src={formData.image_url || "/placeholder.svg"}
+                            alt="Event preview"
+                            className="w-24 h-24 object-cover rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 bg-transparent"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="brand-bg-beige text-black hover:bg-opacity-90 h-11">
+                      {editingEvent ? "Update Event" : "Create Event"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
-      </div>
-
-      {/* Table */}
-      <div className="brand-bg-beige rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader className="brand-bg-beige">
-            <TableRow>
-              <TableHead className="text-[#57463B] font-semibold">Name</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Category</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Date & Time</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Location</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Capacity</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Booked</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Status</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {events.map((event) => (
-              <TableRow key={event.id} className="bg-white">
-                <TableCell className="font-medium">{event.name}</TableCell>
-                <TableCell>{event.category}</TableCell>
-                <TableCell>{formatDate(event.date_time)}</TableCell>
-                <TableCell>{event.location}</TableCell>
-                <TableCell>{event.capacity}</TableCell>
-                <TableCell>{event.current_bookings}</TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(event.status)}>{event.status}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(event)}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Add/Edit Event Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingEvent ? "Edit Event" : "Add New Event"}</DialogTitle>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Event Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Yoga Classes">Yoga Classes</SelectItem>
-                    <SelectItem value="Sound Therapy">Sound Therapy</SelectItem>
-                    <SelectItem value="Wellness Events">Wellness Events</SelectItem>
-                    <SelectItem value="Corporate & Private Bookings">Corporate & Private Bookings</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="date_time">Date & Time</Label>
-                <Input
-                  id="date_time"
-                  type="datetime-local"
-                  value={formData.date_time}
-                  onChange={(e) => setFormData({ ...formData, date_time: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="capacity">Capacity</Label>
-                <Input
-                  id="capacity"
-                  type="number"
-                  value={formData.capacity}
-                  onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="price">Price (£)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="instructor_name">Instructor Name</Label>
-              <Input
-                id="instructor_name"
-                value={formData.instructor_name}
-                onChange={(e) => setFormData({ ...formData, instructor_name: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="image_url">Image URL (optional)</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="/placeholder.svg?height=400&width=600"
-              />
-            </div>
-
-            <div className="flex justify-end gap-4 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" className="brand-bg-beige text-black hover:bg-opacity-90">
-                {editingEvent ? "Update Event" : "Create Event"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      </main>
     </div>
   )
 }

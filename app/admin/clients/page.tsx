@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Eye } from "lucide-react"
+import { ArrowLeft, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { AdminSidebar } from "@/components/admin-sidebar"
 
 interface Client {
   name: string
@@ -163,26 +164,26 @@ export default function AdminClientsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800  h-8 rounded-lg"
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800  h-8 rounded-lg"
       case "cancelled":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800  h-8 rounded-lg"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800  h-8 rounded-lg"
     }
   }
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case "paid":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800  h-8 rounded-lg"
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800  h-8 rounded-lg"
       case "failed":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800  h-8 rounded-lg"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800  h-8 rounded-lg"
     }
   }
 
@@ -191,19 +192,29 @@ export default function AdminClientsPage() {
    }
 
   return (
+    <div className="flex h-screen bg-gray-50">
+          <AdminSidebar />
+          <main className="flex-1 overflow-auto md:ml-0">
+        <div className="p-6 md:p-8">
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
+                    <ArrowLeft
+                     className="size-6 text-gray-500 cursor-pointer hover:text-gray-700"
+                     onClick={() => window.history.back()}
+                   />
 
       {/* Table Header with Search */}
-      <div className="brand-bg-beige/40 p-4 rounded-lg">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">All Clients</h2>
-          <Input placeholder="Search clients..." className="max-w-sm" />
-        </div>
-      </div>
+      
 
       {/* Table */}
-      <div className="brand-bg-beige rounded-lg overflow-hidden">
+      <section>
+<div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-medium">All Clients</h2>
+          <Input placeholder="Search clients..." className="w-[250px] h-12 rounded-lg bg-white border-none" />
+        </div>
+      </div>
+    
+      <div className="overflow-hidden">
         <Table>
           <TableHeader className="brand-bg-beige">
             <TableRow>
@@ -218,7 +229,7 @@ export default function AdminClientsPage() {
           </TableHeader>
           <TableBody>
             {clients.map((client) => (
-              <TableRow key={client.email} className="bg-white">
+              <TableRow key={client.email} >
                 <TableCell className="font-medium">{client.name}</TableCell>
                 <TableCell>{client.email}</TableCell>
                 <TableCell>{client.phone}</TableCell>
@@ -237,6 +248,7 @@ export default function AdminClientsPage() {
           </TableBody>
         </Table>
       </div>
+        </section>
 
       {/* Client Details Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -288,6 +300,9 @@ export default function AdminClientsPage() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+       </div>
+      </main>
     </div>
   )
 }
