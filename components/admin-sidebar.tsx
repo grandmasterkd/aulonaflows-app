@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { LayoutDashboard, Calendar, CalendarDays, Users, CreditCard, Settings, LogOut, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 const sidebarItems = [
   { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -49,10 +50,7 @@ export function AdminSidebar() {
           {/* Logo */}
           <div className="p-6 border-b border-[#57463B]/20">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 brand-bg-brown rounded-full flex items-center justify-center">
-                <span className="brand-text-cream text-lg font-bold">AF</span>
-              </div>
-              <span className="headline-text text-xl font-bold">Aulona Flows</span>
+             <Image src="/aulonaflows-logo-white.svg" alt="AulonaFlows Logo" width={50} height={50} />
             </div>
           </div>
 

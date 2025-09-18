@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useRef } from "react"
 import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -37,6 +39,9 @@ export function ServicesSection() {
   const [currentService, setCurrentService] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -63,6 +68,38 @@ export function ServicesSection() {
     setCurrentService((prev) => (prev - 1 + services.length) % services.length)
   }
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+    setIsDragging(true)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) {
+      setIsDragging(false)
+      return
+    }
+
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) {
+      nextService()
+    } else if (isRightSwipe) {
+      prevService()
+    }
+
+    setIsDragging(false)
+    setTouchStart(null)
+    setTouchEnd(null)
+  }
+
   return (
     <section
       ref={sectionRef}
@@ -76,8 +113,13 @@ export function ServicesSection() {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
             style={{ transitionDelay: "200ms" }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            <div className="h-[400px] md:h-[580px] rounded-3xl overflow-hidden">
+            <div
+              className={`h-[400px] md:h-[580px] rounded-3xl overflow-hidden transition-transform duration-200 ${isDragging ? "scale-[0.98]" : ""}`}
+            >
               <Image
                 src={services[currentService].image || "/placeholder.svg"}
                 alt={services[currentService].title}

@@ -1,35 +1,71 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { AdminSidebar } from "@/components/admin-sidebar"
+import { ArrowLeft } from "lucide-react"
+import Image from "next/image"
 
-export default async function AdminPaymentsPage() {
-  const supabase = await createClient()
+interface Payment {
+  id: string
+  name: string
+  event: string
+  created_at: string
+  amount: number
+  payment_method: string
+  payment_status: string
+}
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-  if (error || !user) {
-    redirect("/admin/login")
+export default function AdminPaymentsPage() {
+  const [payments, setPayments] = useState<Payment[]>([])
+  const [filteredPayments, setFilteredPayments] = useState<Payment[]>([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    checkAuth()
+    fetchPayments()
+  }, [])
+
+  useEffect(() => {
+    const filtered = payments.filter((payment) => {
+      const name = payment.name.toLowerCase()
+      const event = payment.event.toLowerCase()
+      const paymentId = payment.id.toLowerCase()
+      const search = searchTerm.toLowerCase()
+
+      return name.includes(search) || event.includes(search) || paymentId.includes(search)
+    })
+    setFilteredPayments(filtered)
+  }, [searchTerm, payments])
+
+  const checkAuth = async () => {
+    const supabase = createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      router.push("/admin/login")
+    }
   }
 
-  // Get payments with booking and event details
-  const { data: payments } = await supabase
-    .from("payments")
-    .select(
-      `
-      *,
-      bookings (
-        name,
-        events (
-          name
-        )
-      )
-    `,
-    )
-    .order("created_at", { ascending: false })
+  const fetchPayments = async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase.from("payments").select("*").order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching payments:", error)
+    } else {
+      setPayments(data || [])
+      setFilteredPayments(data || [])
+    }
+    setIsLoading(false)
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
@@ -53,49 +89,69 @@ export default async function AdminPaymentsPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center animate-pulse">
+        <Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} />
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
+    <div className="flex h-screen bg-gray-50">
+      <AdminSidebar />
+      <main className="flex-1 overflow-auto md:ml-0">
+        <div className="p-6 md:p-8">
+          <div className="space-y-6">
+            <ArrowLeft className="size-6 text-gray-500" />
 
-      {/* Table Header with Search */}
-      <div className="brand-bg-beige/40 p-4 rounded-lg">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">All Payments</h2>
-          <Input placeholder="Search payments..." className="max-w-sm" />
+            <section>
+              <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-medium">All Payments</h2>
+                  <Input
+                    placeholder="Search payments..."
+                    className="w-[250px] h-12 rounded-lg bg-white border-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-hidden">
+                <Table>
+                  <TableHeader className="brand-bg-beige">
+                    <TableRow>
+                      <TableHead className="text-[#57463B] font-semibold">Payment ID</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Name</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Event</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Date</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Amount</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Payment Method</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPayments?.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell className="font-mono text-sm">{payment.id.slice(0, 8)}...</TableCell>
+                        <TableCell className="font-medium">{payment.name}</TableCell>
+                        <TableCell>{payment.event}</TableCell>
+                        <TableCell>{formatDate(payment.created_at)}</TableCell>
+                        <TableCell className="font-semibold">£{payment.amount}</TableCell>
+                        <TableCell className="capitalize">{payment.payment_method.replace("_", " ")}</TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(payment.payment_status)}>{payment.payment_status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </section>
+          </div>
         </div>
-      </div>
-
-      {/* Table */}
-      <div className="brand-bg-beige rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader className="brand-bg-beige">
-            <TableRow>
-              <TableHead className="text-[#57463B] font-semibold">Payment ID</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Name</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Event</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Date</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Amount</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Payment Method</TableHead>
-              <TableHead className="text-[#57463B] font-semibold">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {payments?.map((payment) => (
-              <TableRow key={payment.id} className="bg-white">
-                <TableCell className="font-mono text-sm">{payment.id.slice(0, 8)}...</TableCell>
-                <TableCell className="font-medium">{payment.bookings?.name}</TableCell>
-                <TableCell>{payment.bookings?.events?.name}</TableCell>
-                <TableCell>{formatDate(payment.created_at)}</TableCell>
-                <TableCell className="font-semibold">£{payment.amount}</TableCell>
-                <TableCell className="capitalize">{payment.payment_method.replace("_", " ")}</TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(payment.status)}>{payment.status}</Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      </main>
     </div>
   )
 }
