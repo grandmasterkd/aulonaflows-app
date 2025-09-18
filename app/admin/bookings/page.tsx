@@ -81,53 +81,47 @@ export default async function AdminBookingsPage() {
         <div className="p-6 md:p-8">
           <div className="space-y-6">
             <ArrowLeft className="size-6 text-gray-500" />
-            {/* <h1 className="text-3xl font-bold text-gray-900">Bookings</h1> */}
 
-            {/* Table Header with Search */}
-           
-
-            {/* Table */}
             <section>
-            <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-medium">All Bookings</h2>
-                <Input placeholder="Search bookings..." className="max-w-xs h-12 rounded-lg bg-white border-none" />
+              <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-medium">All Bookings</h2>
+                  <Input placeholder="Search bookings..." className="max-w-xs h-12 rounded-lg bg-white border-none" />
+                </div>
               </div>
-            </div>
-            <div className=" overflow-hidden">
-              <Table>
-                <TableHeader className="h-14 brand-bg-beige">
-                  <TableRow  >
-                    <TableHead className="text-[#57463B] font-semibold">Booking ID</TableHead>
-                    <TableHead className="text-[#57463B] font-semibold">Name</TableHead>
-                    <TableHead className="text-[#57463B] font-semibold">Date</TableHead>
-                    <TableHead className="text-[#57463B] font-semibold">Event</TableHead>
-                    <TableHead className="text-[#57463B] font-semibold">Payment Status</TableHead>
-                    <TableHead className="text-[#57463B] font-semibold">Booking Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {bookings?.map((booking) => (
-                    <TableRow key={booking.id} >
-                      <TableCell className="text-sm">{booking.id.slice(0, 8)}...</TableCell>
-                      <TableCell className="font-medium">{getCustomerName(booking.notes)}</TableCell>
-                      <TableCell>{formatDate(booking.booking_date)}</TableCell>
-                      <TableCell>{booking.events?.name}</TableCell>
-                      <TableCell>
-                        <Badge className={getPaymentStatusColor(booking.payment_status)}>
-                          {booking.payment_status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(booking.status)}>{booking.status}</Badge>
-                      </TableCell>
+              <div className=" overflow-hidden">
+                <Table>
+                  <TableHeader className="h-14 brand-bg-beige">
+                    <TableRow>
+                      <TableHead className="text-[#57463B] font-semibold">Booking ID</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Name</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Date</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Event</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Payment Status</TableHead>
+                      <TableHead className="text-[#57463B] font-semibold">Booking Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-             
-            </div>
-              </section>
+                  </TableHeader>
+                  <TableBody>
+                    {bookings?.map((booking) => (
+                      <TableRow key={booking.id}>
+                        <TableCell className="text-sm">{booking.id.slice(0, 8)}...</TableCell>
+                        <TableCell className="font-medium">{getCustomerName(booking.notes)}</TableCell>
+                        <TableCell>{formatDate(booking.booking_date)}</TableCell>
+                        <TableCell>{booking.events?.name}</TableCell>
+                        <TableCell>
+                          <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                            {booking.payment_status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(booking.status)}>{booking.status}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </section>
           </div>
         </div>
       </main>
