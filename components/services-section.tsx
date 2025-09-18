@@ -18,7 +18,7 @@ const services = [
   {
     title: "Sound Therapy",
     description:
-      "Immerse yourself in healing vibrations through crystal singing bowls, gongs, and other sacred instruments. These deeply relaxing sessions help reduce stress, improve sleep, and restore energetic balance.",
+      "Immerse yourself in healing vibrations through crystal singing bowls, and other sacred instruments. These deeply relaxing sessions help reduce stress, improve sleep, and restore energetic balance.",
     image: "/services-temp-2.jpg",
   },
   {
@@ -169,7 +169,7 @@ export function ServicesSection() {
               style={{ transitionDelay: "600ms" }}
             >
               <div className="space-y-3 md:space-y-4">
-                <h2 className="headline-text leading-normal text-2xl md:text-4xl font-semibold transition-all duration-500">
+                <h2 className="headline-text leading-normal md:leading-normal text-2xl md:text-4xl font-semibold transition-all duration-500">
                   {services[currentService].title}
                 </h2>
                 <p className="paragraph-text text-sm md:text-base leading-relaxed transition-all duration-500">
