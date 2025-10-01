@@ -13,25 +13,25 @@ const services = [
     title: "Yoga Classes",
     description:
       "From gentle Hatha to dynamic Vinyasa flows, our classes cater to all levels and abilities. Experience the transformative power of mindful movement in a supportive, non-judgmental environment where every body is welcome.",
-    image: "/services-temp-1.jpg",
+    image: "/aulona-personal-13.webp",
   },
   {
     title: "Sound Therapy",
     description:
       "Immerse yourself in healing vibrations through crystal singing bowls, and other sacred instruments. These deeply relaxing sessions help reduce stress, improve sleep, and restore energetic balance.",
-    image: "/services-temp-2.jpg",
+    image: "/aulona-personal-6.webp",
   },
   {
     title: "Wellness Events",
     description:
       "Join our special workshops, retreats, and community gatherings designed to deepen your practice and connect with like-minded souls. From meditation intensives to seasonal celebrations, there's always something inspiring happening.",
-    image: "/services-temp-3.jpg",
+    image: "/aulona-personal-14.webp",
   },
   {
     title: "Corporate & Private Bookings",
     description:
       "Bring the benefits of yoga and mindfulness to your workplace or special event. Our customized sessions help reduce stress, improve focus, and create a more harmonious environment for teams and individuals.",
-    image: "/services-temp-4.jpg",
+    image: "/aulona-personal-15.webp",
   },
 ]
 

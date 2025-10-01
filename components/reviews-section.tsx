@@ -42,7 +42,7 @@ function ReviewCard({
             alt={review.name}
             width={48}
             height={48}
-            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+            className="hidden w-12 h-12 rounded-full object-cover flex-shrink-0"
           />
           <h3 className="headline-text text-lg font-semibold line-clamp-1">{review.name}</h3>
         </div>
@@ -53,7 +53,7 @@ function ReviewCard({
             variant="ghost"
             size="sm"
             onClick={() => setIsModalOpen(true)}
-            className="bg-white/50 backdrop-blur-sm w-auto px-6 rounded-3xl px-3 h-8 text-[#57463B] hover:underline text-xs"
+            className="bg-white/50 backdrop-blur-sm w-auto px-6 rounded-3xl h-8 text-[#57463B] hover:underline text-xs"
           >
             Read More
           </Button>
@@ -74,7 +74,7 @@ function ReviewCard({
                 alt={review.name}
                 width={60}
                 height={60}
-                className="w-14 h-14 rounded-full object-cover"
+                className="hidden w-14 h-14 rounded-full object-cover"
               />
               <div className="flex flex-col items-start" >
                 <DialogTitle className="headline-text text-xl font-semibold">{review.name}</DialogTitle>

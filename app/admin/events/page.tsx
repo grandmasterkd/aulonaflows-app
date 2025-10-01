@@ -105,7 +105,34 @@ export default function AdminEventsPage() {
     let imageUrl = formData.image_url || "/placeholder.svg?height=400&width=600"
 
     if (selectedImage) {
-      imageUrl = formData.image_url
+      try {
+        // Upload to Vercel Blob
+        const formDataBlob = new FormData()
+        formDataBlob.append("file", selectedImage)
+
+        const uploadResponse = await fetch("/api/upload-image", {
+          method: "POST",
+          body: formDataBlob,
+        })
+
+        if (uploadResponse.ok) {
+          const { url } = await uploadResponse.json()
+          imageUrl = url
+          console.log("[v0] Image uploaded successfully:", url)
+        } else {
+          console.error("[v0] Image upload failed")
+          setMessage({
+            type: "error",
+            text: "Failed to upload image. Using placeholder instead.",
+          })
+        }
+      } catch (error) {
+        console.error("[v0] Error uploading image:", error)
+        setMessage({
+          type: "error",
+          text: "Failed to upload image. Using placeholder instead.",
+        })
+      }
     }
 
     const eventData = {
@@ -119,7 +146,10 @@ export default function AdminEventsPage() {
       instructor_name: formData.instructor_name,
       image_url: imageUrl,
       status: formData.status,
+      ...(editingEvent ? {} : { booking_count: 0 }),
     }
+
+    console.log("[v0] Saving event data:", eventData)
 
     let error
     if (editingEvent) {

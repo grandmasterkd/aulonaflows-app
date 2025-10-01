@@ -79,7 +79,7 @@ export default function AdminLoginPage() {
         <div className=" h-auto md:h-[500px] flex flex-col lg:flex-row gap-16">
           {/* Left Side - Image */}
           <div className="lg:w-1/2 relative h-[400px] lg:h-full">
-            <Image src="/admin-login-bg.jpg" alt="Meditation space" fill className="rounded-3xl object-cover" />
+            <Image src="/admin-login-bg.webp" alt="Meditation space" fill className="rounded-3xl object-cover" />
             
           </div>
 

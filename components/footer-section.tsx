@@ -80,7 +80,7 @@ export function FooterSection() {
                   </Link>
 
                   {/* Customer Images */}
-                  <div className="flex -space-x-2 sm:-space-x-4">
+                  <div className="hidden -space-x-2 sm:-space-x-4">
                     {["/review-potrait-2.jpg", "/review-potrait-4.jpg", "/review-potrait-5.jpg"].map((src, index) => (
                       <Image
                         key={index}
@@ -108,7 +108,7 @@ export function FooterSection() {
                   style={{ animationDelay: "0.8s" }}
                 >
                   <Image
-                    src="/footer-test-1.jpg"
+                    src="/aulona-personal-4.webp"
                     alt="Yoga in nature"
                     width={200}
                     height={300}
@@ -120,11 +120,11 @@ export function FooterSection() {
                   style={{ animationDelay: "1.0s" }}
                 >
                   <Image
-                    src="/radialeclipse.svg"
+                    src="/aulona-personal-2.webp"
                     alt="Meditation space"
-                    width={100}
-                    height={100}
-                    className="w-full h-full object-none object-right-top opacity-70 backdrop-blur-lg"
+                    width={200}
+                    height={300}
+                    className="w-full h-full object-cover"
                   />
                 </div>
               </div>
@@ -144,7 +144,7 @@ export function FooterSection() {
                   style={{ animationDelay: "1.4s" }}
                 >
                   <Image
-                    src="/footer-test-3.jpg"
+                    src="/aulona-personal-5.webp"
                     alt="Studio space"
                     width={200}
                     height={300}
@@ -159,7 +159,7 @@ export function FooterSection() {
                   style={{ animationDelay: "1.6s" }}
                 >
                   <Image
-                    src="/footer-test-2.jpg"
+                    src="/aulona-personal-6.webp"
                     alt="Yoga community"
                     width={200}
                     height={300}
@@ -171,7 +171,7 @@ export function FooterSection() {
                   style={{ animationDelay: "1.8s" }}
                 >
                   <Image
-                    src="/footer-test-4.jpg"
+                    src="/aulona-personal-9.webp"
                     alt="Peaceful practice"
                     width={200}
                     height={200}
@@ -194,7 +194,7 @@ export function FooterSection() {
                   target="_blank"
                   className="hover:text-[#7A5A3D] transition-colors duration-300 group"
                 >
-                  <span className="text-[#9A7153] block text-sm lg:text-base">Follow Us</span>
+                  <span className="text-[#9A7153] block text-sm lg:text-base">Connect With Me</span>
                   <Instagram className="text-black block size-5 group-hover:scale-110 transition-transform duration-300" />
                 </Link>
 
