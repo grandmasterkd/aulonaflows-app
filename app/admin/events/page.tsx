@@ -3,6 +3,8 @@
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { uploadImage } from "@/lib/supabase/storage"
+import { getImageUrl } from "@/lib/utils/images"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -121,10 +123,22 @@ export default function AdminEventsPage() {
 
     const supabase = createClient()
 
-    let imageUrl = formData.image_url || "/aulona-bookings-placeholder.webp"
+    let imageUrl = formData.image_url
 
     if (selectedImage) {
-      imageUrl = formData.image_url
+      // Upload new image to Supabase Storage
+      const uploadResult = await uploadImage(selectedImage)
+
+      if (uploadResult.error) {
+        setMessage({
+          type: "error",
+          text: `Failed to upload image: ${uploadResult.error}`,
+        })
+        return
+      }
+
+      // Store relative path in database
+      imageUrl = uploadResult.relativePath
     }
 
     const eventData = {
@@ -136,7 +150,7 @@ export default function AdminEventsPage() {
       capacity: Number.parseInt(formData.capacity),
       price: Number.parseFloat(formData.price),
       instructor_name: formData.instructor_name,
-      image_url: imageUrl,
+      image_url: imageUrl || "events/placeholder.jpg",
       status: formData.status,
     }
 
@@ -318,11 +332,11 @@ export default function AdminEventsPage() {
                     <div className="relative" ref={filterRef}>
                       <button
                         onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        className="h-12 px-3 rounded-lg bg-white hover:bg-gray-50 flex items-center justify-between gap-3 min-w-[140px] transition-colors"
+                        className="h-12 px-4 rounded-lg bg-white hover:bg-gray-50 flex items-center justify-between gap-3 min-w-[140px] transition-colors"
                       >
-                        <div className="flex items-center gap-1">
-                          <Filter className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-400">{getFilterLabel()}</span>
+                        <div className="flex items-center gap-2">
+                          <Filter className="w-4 h-4 text-gray-700" />
+                          <span className="text-sm text-gray-700">{getFilterLabel()}</span>
                         </div>
                         <ChevronDown
                           className={`w-4 h-4 text-gray-700 transition-transform ${isFilterOpen ? "rotate-180" : ""}`}
@@ -562,7 +576,11 @@ export default function AdminEventsPage() {
                       {formData.image_url && (
                         <div className="relative">
                           <img
-                            src={formData.image_url || "/aulona-bookings-placeholder.webp"}
+                            src={
+                              formData.image_url.startsWith("blob:")
+                                ? formData.image_url
+                                : getImageUrl(formData.image_url)
+                            }
                             alt="Event preview"
                             className="w-20 h-20 object-cover rounded-lg border"
                           />
