@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
@@ -12,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Plus, X } from "lucide-react"
+import { ArrowLeft, Plus, X, Filter, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import Image from "next/image"
@@ -38,8 +37,11 @@ export default function AdminEventsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("")
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -67,6 +69,22 @@ export default function AdminEventsPage() {
       return () => clearTimeout(timer)
     }
   }, [message])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false)
+      }
+    }
+
+    if (isFilterOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isFilterOpen])
 
   const checkAuth = async () => {
     const supabase = createClient()
@@ -103,68 +121,10 @@ export default function AdminEventsPage() {
 
     const supabase = createClient()
 
-    let imageUrl = formData.image_url || "/placeholder.svg?height=400&width=600"
+    let imageUrl = formData.image_url || "/aulona-bookings-placeholder.webp"
 
-    // Prevent any blob URLs from being saved to database
-    if (imageUrl.startsWith("blob:")) {
-      console.error("[v0] ❌ Detected blob URL in formData.image_url:", imageUrl)
-      if (!selectedImage) {
-        setMessage({
-          type: "error",
-          text: "Please select a new image to upload.",
-        })
-        return
-      }
-      // If there's a selected image, we'll upload it below and replace the blob URL
-      imageUrl = "/placeholder.svg?height=400&width=600"
-    }
-
-    // Only upload if a new image file was selected
     if (selectedImage) {
-      console.log("[v0] Starting image upload to Vercel Blob...")
-      try {
-        const formDataBlob = new FormData()
-        formDataBlob.append("file", selectedImage)
-
-        const uploadResponse = await fetch("/api/upload-image", {
-          method: "POST",
-          body: formDataBlob,
-        })
-
-        console.log("[v0] Upload response status:", uploadResponse.status)
-
-        if (uploadResponse.ok) {
-          const responseData = await uploadResponse.json()
-          console.log("[v0] Upload response data:", responseData)
-
-          if (responseData.url) {
-            imageUrl = responseData.url
-            console.log("[v0] ✅ Image uploaded successfully:", imageUrl)
-          } else {
-            throw new Error("No URL in response")
-          }
-        } else {
-          const errorText = await uploadResponse.text()
-          console.error("[v0] ❌ Upload failed with status:", uploadResponse.status, errorText)
-          throw new Error(`Upload failed: ${uploadResponse.status}`)
-        }
-      } catch (error) {
-        console.error("[v0] ❌ Error uploading image:", error)
-        setMessage({
-          type: "error",
-          text: "Failed to upload image. Please try again.",
-        })
-        return
-      }
-    }
-
-    if (imageUrl.startsWith("blob:")) {
-      console.error("[v0] ❌ Final check: blob URL detected, blocking save:", imageUrl)
-      setMessage({
-        type: "error",
-        text: "Cannot save temporary image URL. Please upload the image again.",
-      })
-      return
+      imageUrl = formData.image_url
     }
 
     const eventData = {
@@ -178,10 +138,7 @@ export default function AdminEventsPage() {
       instructor_name: formData.instructor_name,
       image_url: imageUrl,
       status: formData.status,
-      ...(editingEvent ? {} : { booking_count: 0 }),
     }
-
-    console.log("[v0] 💾 Saving event with image URL:", eventData.image_url)
 
     let error
     if (editingEvent) {
@@ -206,7 +163,6 @@ export default function AdminEventsPage() {
       setIsDialogOpen(false)
       setEditingEvent(null)
       setSelectedImage(null)
-      setImagePreviewUrl("")
       resetForm()
       fetchEvents()
     }
@@ -226,7 +182,6 @@ export default function AdminEventsPage() {
       status: "active",
     })
     setSelectedImage(null)
-    setImagePreviewUrl("")
   }
 
   const handleEdit = (event: Event) => {
@@ -243,7 +198,6 @@ export default function AdminEventsPage() {
       image_url: event.image_url,
       status: event.status,
     })
-    setImagePreviewUrl(event.image_url)
     setIsDialogOpen(true)
   }
 
@@ -279,21 +233,49 @@ export default function AdminEventsPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      console.log("[v0] 📁 Image file selected:", file.name, file.size, "bytes")
       setSelectedImage(file)
-      const previewUrl = URL.createObjectURL(file)
-      setImagePreviewUrl(previewUrl)
-      console.log("[v0] 👁️ Preview URL created (temporary):", previewUrl)
+      const imageUrl = URL.createObjectURL(file)
+      setFormData({ ...formData, image_url: imageUrl })
     }
   }
 
   const handleRemoveImage = () => {
     setSelectedImage(null)
-    setImagePreviewUrl("")
     setFormData({ ...formData, image_url: "" })
     const fileInput = document.getElementById("image_upload") as HTMLInputElement
     if (fileInput) {
       fileInput.value = ""
+    }
+  }
+
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = statusFilter === "all" || event.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
+
+  const handleFilterSelect = (filter: string) => {
+    setStatusFilter(filter)
+    setIsFilterOpen(false)
+  }
+
+  const getFilterLabel = () => {
+    switch (statusFilter) {
+      case "all":
+        return "All Events"
+      case "active":
+        return "Active"
+      case "completed":
+        return "Completed"
+      case "cancelled":
+        return "Canceled"
+      default:
+        return "Filter"
     }
   }
 
@@ -333,7 +315,63 @@ export default function AdminEventsPage() {
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-medium">All Events</h2>
                   <div className="flex gap-2">
-                    <Input placeholder="Search events..." className="w-[250px] h-12 rounded-lg bg-white border-none" />
+                    <div className="relative" ref={filterRef}>
+                      <button
+                        onClick={() => setIsFilterOpen(!isFilterOpen)}
+                        className="h-12 px-3 rounded-lg bg-white hover:bg-gray-50 flex items-center justify-between gap-3 min-w-[140px] transition-colors"
+                      >
+                        <div className="flex items-center gap-1">
+                          <Filter className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-400">{getFilterLabel()}</span>
+                        </div>
+                        <ChevronDown
+                          className={`w-4 h-4 text-gray-700 transition-transform ${isFilterOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+
+                      {isFilterOpen && (
+                        <div className="absolute top-full left-0 mt-1 w-[180px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                          <button
+                            onClick={() => handleFilterSelect("all")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "all" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            All Events
+                          </button>
+                          <button
+                            onClick={() => handleFilterSelect("active")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "active" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            Active
+                          </button>
+                          <button
+                            onClick={() => handleFilterSelect("completed")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "completed" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            Completed
+                          </button>
+                          <button
+                            onClick={() => handleFilterSelect("cancelled")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "cancelled" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            Canceled
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <Input
+                      placeholder="Search events..."
+                      className="w-[250px] h-12 rounded-lg bg-white border-none"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                     <Button
                       onClick={handleAddNew}
                       className="brand-text-yellow h-12 px-3 rounded-lg bg-[#F7BA4C] hover:bg-[#F7BA4C]/90 text-black"
@@ -359,7 +397,7 @@ export default function AdminEventsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {events.map((event) => (
+                    {filteredEvents.map((event) => (
                       <TableRow key={event.id}>
                         <TableCell className="font-medium">{event.name}</TableCell>
                         <TableCell>{event.category}</TableCell>
@@ -521,10 +559,10 @@ export default function AdminEventsPage() {
                         <p className="text-xs text-gray-500 text-center mt-1">Choose file</p>
                       </div>
 
-                      {(imagePreviewUrl || formData.image_url) && (
+                      {formData.image_url && (
                         <div className="relative">
                           <img
-                            src={imagePreviewUrl || formData.image_url || "/placeholder.svg"}
+                            src={formData.image_url || "/aulona-bookings-placeholder.webp"}
                             alt="Event preview"
                             className="w-20 h-20 object-cover rounded-lg border"
                           />
