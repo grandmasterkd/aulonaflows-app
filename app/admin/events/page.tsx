@@ -38,6 +38,7 @@ export default function AdminEventsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("")
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [formData, setFormData] = useState({
     name: "",
@@ -104,9 +105,24 @@ export default function AdminEventsPage() {
 
     let imageUrl = formData.image_url || "/placeholder.svg?height=400&width=600"
 
+    // Prevent any blob URLs from being saved to database
+    if (imageUrl.startsWith("blob:")) {
+      console.error("[v0] ❌ Detected blob URL in formData.image_url:", imageUrl)
+      if (!selectedImage) {
+        setMessage({
+          type: "error",
+          text: "Please select a new image to upload.",
+        })
+        return
+      }
+      // If there's a selected image, we'll upload it below and replace the blob URL
+      imageUrl = "/placeholder.svg?height=400&width=600"
+    }
+
+    // Only upload if a new image file was selected
     if (selectedImage) {
+      console.log("[v0] Starting image upload to Vercel Blob...")
       try {
-        // Upload to Vercel Blob
         const formDataBlob = new FormData()
         formDataBlob.append("file", selectedImage)
 
@@ -115,24 +131,40 @@ export default function AdminEventsPage() {
           body: formDataBlob,
         })
 
+        console.log("[v0] Upload response status:", uploadResponse.status)
+
         if (uploadResponse.ok) {
-          const { url } = await uploadResponse.json()
-          imageUrl = url
-          console.log("[v0] Image uploaded successfully:", url)
+          const responseData = await uploadResponse.json()
+          console.log("[v0] Upload response data:", responseData)
+
+          if (responseData.url) {
+            imageUrl = responseData.url
+            console.log("[v0] ✅ Image uploaded successfully:", imageUrl)
+          } else {
+            throw new Error("No URL in response")
+          }
         } else {
-          console.error("[v0] Image upload failed")
-          setMessage({
-            type: "error",
-            text: "Failed to upload image. Using placeholder instead.",
-          })
+          const errorText = await uploadResponse.text()
+          console.error("[v0] ❌ Upload failed with status:", uploadResponse.status, errorText)
+          throw new Error(`Upload failed: ${uploadResponse.status}`)
         }
       } catch (error) {
-        console.error("[v0] Error uploading image:", error)
+        console.error("[v0] ❌ Error uploading image:", error)
         setMessage({
           type: "error",
-          text: "Failed to upload image. Using placeholder instead.",
+          text: "Failed to upload image. Please try again.",
         })
+        return
       }
+    }
+
+    if (imageUrl.startsWith("blob:")) {
+      console.error("[v0] ❌ Final check: blob URL detected, blocking save:", imageUrl)
+      setMessage({
+        type: "error",
+        text: "Cannot save temporary image URL. Please upload the image again.",
+      })
+      return
     }
 
     const eventData = {
@@ -149,7 +181,7 @@ export default function AdminEventsPage() {
       ...(editingEvent ? {} : { booking_count: 0 }),
     }
 
-    console.log("[v0] Saving event data:", eventData)
+    console.log("[v0] 💾 Saving event with image URL:", eventData.image_url)
 
     let error
     if (editingEvent) {
@@ -174,6 +206,7 @@ export default function AdminEventsPage() {
       setIsDialogOpen(false)
       setEditingEvent(null)
       setSelectedImage(null)
+      setImagePreviewUrl("")
       resetForm()
       fetchEvents()
     }
@@ -193,6 +226,7 @@ export default function AdminEventsPage() {
       status: "active",
     })
     setSelectedImage(null)
+    setImagePreviewUrl("")
   }
 
   const handleEdit = (event: Event) => {
@@ -209,6 +243,7 @@ export default function AdminEventsPage() {
       image_url: event.image_url,
       status: event.status,
     })
+    setImagePreviewUrl(event.image_url)
     setIsDialogOpen(true)
   }
 
@@ -244,14 +279,17 @@ export default function AdminEventsPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      console.log("[v0] 📁 Image file selected:", file.name, file.size, "bytes")
       setSelectedImage(file)
-      const imageUrl = URL.createObjectURL(file)
-      setFormData({ ...formData, image_url: imageUrl })
+      const previewUrl = URL.createObjectURL(file)
+      setImagePreviewUrl(previewUrl)
+      console.log("[v0] 👁️ Preview URL created (temporary):", previewUrl)
     }
   }
 
   const handleRemoveImage = () => {
     setSelectedImage(null)
+    setImagePreviewUrl("")
     setFormData({ ...formData, image_url: "" })
     const fileInput = document.getElementById("image_upload") as HTMLInputElement
     if (fileInput) {
@@ -469,7 +507,6 @@ export default function AdminEventsPage() {
                   <div>
                     <Label htmlFor="image_upload">Event Image</Label>
                     <div className="flex items-start gap-3 mt-2">
-                      {/* Add image square */}
                       <div className="relative">
                         <input
                           id="image_upload"
@@ -484,11 +521,10 @@ export default function AdminEventsPage() {
                         <p className="text-xs text-gray-500 text-center mt-1">Choose file</p>
                       </div>
 
-                      {/* Display uploaded image */}
-                      {formData.image_url && (
+                      {(imagePreviewUrl || formData.image_url) && (
                         <div className="relative">
                           <img
-                            src={formData.image_url || "/placeholder.svg"}
+                            src={imagePreviewUrl || formData.image_url || "/placeholder.svg"}
                             alt="Event preview"
                             className="w-20 h-20 object-cover rounded-lg border"
                           />
