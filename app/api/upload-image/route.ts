@@ -15,7 +15,9 @@ export async function POST(request: Request) {
       access: "public",
     })
 
-    return NextResponse.json({ url: blob.url })
+    const brandedUrl = blob.url.replace("https://public.blob.vercel-storage.com", "/uploads")
+
+    return NextResponse.json({ url: brandedUrl })
   } catch (error) {
     console.error("[v0] Error uploading to Vercel Blob:", error)
     return NextResponse.json({ error: "Upload failed" }, { status: 500 })
