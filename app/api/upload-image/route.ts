@@ -31,25 +31,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "File size must be less than 10MB" }, { status: 400 })
     }
 
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(2, 15)
-    const fileExtension = file.name.split(".").pop()
-    const uniqueFilename = `event-${timestamp}-${randomString}.${fileExtension}`
+    console.log("[v0] Uploading to Vercel Blob with original filename:", file.name)
 
-    console.log("[v0] Uploading to Vercel Blob with filename:", uniqueFilename)
-
-    const blob = await put(uniqueFilename, file, {
+    const blob = await put(file.name, file, {
       access: "public",
       token: process.env.BLOB_READ_WRITE_TOKEN,
     })
 
     console.log("[v0] Upload successful, blob URL:", blob.url)
 
-    const brandedUrl = blob.url.replace(/https:\/\/[^/]+\.blob\.vercel-storage\.com/, "/uploads")
-
-    console.log("[v0] Returning branded URL:", brandedUrl)
-
-    return NextResponse.json({ url: brandedUrl })
+    return NextResponse.json({ url: blob.url })
   } catch (error) {
     console.error("[v0] Error uploading to Vercel Blob:", error)
     console.error("[v0] Error details:", {

@@ -15,14 +15,6 @@ const nextConfig = {
       },
     ],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/uploads/:path*',
-        destination: 'https://public.blob.vercel-storage.com/:path*',
-      },
-    ]
-  },
 }
 
 export default nextConfig
