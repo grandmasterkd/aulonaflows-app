@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Plus, X, Filter, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { AdminNav } from "@/components/admin-nav"
 import Image from "next/image"
 
 interface Event {
@@ -57,10 +58,14 @@ export default function AdminEventsPage() {
     status: "active",
   })
   const router = useRouter()
+  const [adminName, setAdminName] = useState("")
+  const [adminRole, setAdminRole] = useState("")
+  const [newBookingsCount, setNewBookingsCount] = useState(0)
 
   useEffect(() => {
     checkAuth()
     fetchEvents()
+    fetchNewBookingsCount()
   }, [])
 
   useEffect(() => {
@@ -95,6 +100,13 @@ export default function AdminEventsPage() {
     } = await supabase.auth.getUser()
     if (!user) {
       router.push("/admin/login")
+      return
+    }
+
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+    if (profile) {
+      setAdminName(`${profile.first_name} ${profile.last_name}`)
+      setAdminRole(profile.role)
     }
   }
 
@@ -108,6 +120,18 @@ export default function AdminEventsPage() {
       setEvents(data || [])
     }
     setIsLoading(false)
+  }
+
+  const fetchNewBookingsCount = async () => {
+    const supabase = createClient()
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+    const { count } = await supabase
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", twentyFourHoursAgo)
+
+    setNewBookingsCount(count || 0)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,7 +150,6 @@ export default function AdminEventsPage() {
     let imageUrl = formData.image_url
 
     if (selectedImage) {
-      // Upload new image to Supabase Storage
       const uploadResult = await uploadImage(selectedImage)
 
       if (uploadResult.error) {
@@ -137,7 +160,6 @@ export default function AdminEventsPage() {
         return
       }
 
-      // Store relative path in database
       imageUrl = uploadResult.relativePath
     }
 
@@ -306,6 +328,13 @@ export default function AdminEventsPage() {
       <AdminSidebar />
       <main className="flex-1 overflow-auto md:ml-0">
         <div className="p-6 md:p-8">
+          <AdminNav
+            adminName={adminName}
+            adminRole={adminRole}
+            pageTitle="Events"
+            newBookingsCount={newBookingsCount}
+          />
+
           <div className="space-y-6">
             <ArrowLeft
               className="size-6 text-gray-500 cursor-pointer hover:text-gray-700"

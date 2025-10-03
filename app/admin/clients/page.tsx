@@ -11,6 +11,7 @@ import { ArrowLeft, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { AdminNav } from "@/components/admin-nav"
 
 interface Client {
   name: string
@@ -38,11 +39,15 @@ export default function AdminClientsPage() {
   const [clientBookings, setClientBookings] = useState<ClientBooking[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [adminName, setAdminName] = useState("")
+  const [adminRole, setAdminRole] = useState("")
+  const [newBookingsCount, setNewBookingsCount] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
     checkAuth()
     fetchClients()
+    fetchNewBookingsCount()
   }, [])
 
   useEffect(() => {
@@ -65,6 +70,13 @@ export default function AdminClientsPage() {
     } = await supabase.auth.getUser()
     if (!user) {
       router.push("/admin/login")
+      return
+    }
+
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+    if (profile) {
+      setAdminName(`${profile.first_name} ${profile.last_name}`)
+      setAdminRole(profile.role)
     }
   }
 
@@ -135,6 +147,18 @@ export default function AdminClientsPage() {
     setClientBookings(formattedBookings)
   }
 
+  const fetchNewBookingsCount = async () => {
+    const supabase = createClient()
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+    const { count } = await supabase
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", twentyFourHoursAgo)
+
+    setNewBookingsCount(count || 0)
+  }
+
   const handleViewClient = async (client: Client) => {
     setSelectedClient(client)
     await fetchClientBookings(client.email)
@@ -188,6 +212,13 @@ export default function AdminClientsPage() {
       <AdminSidebar />
       <main className="flex-1 overflow-auto md:ml-0">
         <div className="p-6 md:p-8">
+          <AdminNav
+            adminName={adminName}
+            adminRole={adminRole}
+            pageTitle="Clients"
+            newBookingsCount={newBookingsCount}
+          />
+
           <div className="space-y-6">
             <ArrowLeft
               className="size-6 text-gray-500 cursor-pointer hover:text-gray-700"

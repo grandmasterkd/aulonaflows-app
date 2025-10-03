@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent } from "@/components/ui/card"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { DashboardContent } from "@/components/dashboard-content"
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
@@ -10,126 +10,117 @@ export default async function AdminDashboardPage() {
     data: { user },
     error,
   } = await supabase.auth.getUser()
+
   if (error || !user) {
     redirect("/admin/login")
   }
 
-  // Get next upcoming class
-  const { data: nextClass } = await supabase
-    .from("yoga_classes")
-    .select(`
-      *,
-      class_types(name, description),
-      instructors(first_name, last_name)
-    `)
+  // Fetch total revenue
+  const { data: payments } = await supabase.from("payments").select("amount").eq("payment_status", "completed")
+
+  const totalRevenue = payments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0
+
+  // Fetch total customers
+  const { count: totalCustomers } = await supabase.from("clients").select("*", { count: "exact", head: true })
+
+  // Fetch total bookings
+  const { count: totalBookings } = await supabase.from("bookings").select("*", { count: "exact", head: true })
+
+  // Fetch bookings grouped by month for current year
+  const currentYear = new Date().getFullYear()
+  const { data: bookingsData } = await supabase
+    .from("bookings")
+    .select("booking_date")
+    .gte("booking_date", `${currentYear}-01-01`)
+    .lte("booking_date", `${currentYear}-12-31`)
+
+  // Process bookings by month
+  const monthlyBookings = Array.from({ length: 12 }, (_, i) => ({
+    month: new Date(2024, i).toLocaleDateString("en-US", { month: "short" }),
+    bookings: 0,
+  }))
+
+  bookingsData?.forEach((booking) => {
+    const month = new Date(booking.booking_date).getMonth()
+    monthlyBookings[month].bookings++
+  })
+
+  // Fetch monthly data for pie chart (current month)
+  const currentMonth = new Date().getMonth()
+  const currentMonthStart = new Date(currentYear, currentMonth, 1).toISOString()
+  const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59).toISOString()
+
+  const { count: monthlyBookingsCount } = await supabase
+    .from("bookings")
+    .select("*", { count: "exact", head: true })
+    .gte("booking_date", currentMonthStart)
+    .lte("booking_date", currentMonthEnd)
+
+  const { data: monthlyPayments } = await supabase
+    .from("payments")
+    .select("amount")
+    .eq("payment_status", "completed")
+    .gte("date", currentMonthStart)
+    .lte("date", currentMonthEnd)
+
+  const monthlyRevenue = monthlyPayments?.reduce((sum, payment) => sum + Number(payment.amount), 0) || 0
+
+  const { count: monthlyClientsCount } = await supabase
+    .from("clients")
+    .select("*", { count: "exact", head: true })
+    .gte("date_joined", currentMonthStart)
+    .lte("date_joined", currentMonthEnd)
+
+  // Fetch upcoming events
+  const { data: upcomingEvents } = await supabase
+    .from("events")
+    .select("*")
     .gte("date_time", new Date().toISOString())
     .eq("status", "active")
     .order("date_time", { ascending: true })
-    .limit(1)
-    .single()
+    .limit(6)
 
-  // Get upcoming classes for tiles
-  const { data: upcomingClasses } = await supabase
-    .from("yoga_classes")
+  // Fetch recent bookings with client info
+  const { data: recentBookings } = await supabase
+    .from("bookings")
     .select(`
       *,
-      class_types(name, description),
-      instructors(first_name, last_name)
+      clients(name),
+      events(name)
     `)
-    .gte("date_time", new Date().toISOString())
-    .eq("status", "active")
-    .order("date_time", { ascending: true })
-    .limit(8)
+    .order("created_at", { ascending: false })
+    .limit(5)
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { count: newBookingsCount } = await supabase
+    .from("bookings")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", twentyFourHoursAgo)
 
   const adminName = user.user_metadata?.first_name || user.email?.split("@")[0] || "Admin"
+  const adminRole = user.user_metadata?.role || "Administrator"
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-100">
       <AdminSidebar />
-      <main className="flex-1 overflow-auto md:ml-0">
-        <div className="p-6 md:p-8">
-          <div className="space-y-8">
-            {/* Greeting */}
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold text-gray-900">Greetings {adminName}</h1>
-              <span className="text-3xl">👋</span>
-            </div>
-
-            {/* Next Session Hero */}
-            {nextClass && (
-              <div
-                className="relative h-[400px] rounded-lg overflow-hidden bg-cover bg-center"
-                style={{
-                  backgroundImage: `url(${nextClass.image_url || "/yoga-class-hero-image.jpg"})`,
-                }}
-              >
-                <div className="absolute inset-0 bg-black/40" />
-                <div className="absolute bottom-6 left-6 text-white space-y-2">
-                  <h2 className="text-2xl font-bold">{nextClass.title}</h2>
-                  <p className="text-lg opacity-90">{formatDate(nextClass.date_time)}</p>
-                  <p className="text-base opacity-80">{nextClass.location}</p>
-                  <p className="text-base opacity-80">
-                    {nextClass.current_bookings}/{nextClass.max_capacity} booked
-                  </p>
-                  <p className="text-base opacity-80">
-                    Instructor: {nextClass.instructors?.first_name} {nextClass.instructors?.last_name}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Upcoming Sessions Grid */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Upcoming Sessions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {upcomingClasses?.map((yogaClass) => (
-                  <Card key={yogaClass.id} className="overflow-hidden">
-                    <div
-                      className="h-32 bg-cover bg-center relative"
-                      style={{
-                        backgroundImage: `url(${yogaClass.image_url || "/yoga-class-thumbnail.jpg"})`,
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-black/30" />
-                      <div className="absolute bottom-2 left-2 text-white">
-                        <h3 className="font-semibold text-sm">{yogaClass.title}</h3>
-                        <p className="text-xs opacity-90">
-                          {new Date(yogaClass.date_time).toLocaleDateString("en-GB", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <CardContent className="p-4">
-                      <p className="text-sm text-gray-600">{yogaClass.location}</p>
-                      <p className="text-sm text-gray-600">
-                        {yogaClass.current_bookings}/{yogaClass.max_capacity} booked
-                      </p>
-                      <p className="text-sm font-semibold text-[#654625]">£{yogaClass.price}</p>
-                      <p className="text-xs text-gray-500">
-                        {yogaClass.instructors?.first_name} {yogaClass.instructors?.last_name}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+      <main className="flex-1 overflow-auto">
+        <DashboardContent
+          adminName={adminName}
+          adminRole={adminRole}
+          totalRevenue={totalRevenue}
+          totalCustomers={totalCustomers || 0}
+          totalBookings={totalBookings || 0}
+          monthlyBookings={monthlyBookings}
+          currentYear={currentYear}
+          monthlyData={{
+            bookings: monthlyBookingsCount || 0,
+            revenue: monthlyRevenue,
+            clients: monthlyClientsCount || 0,
+          }}
+          upcomingEvents={upcomingEvents || []}
+          recentBookings={recentBookings || []}
+          newBookingsCount={newBookingsCount || 0}
+        />
       </main>
     </div>
   )

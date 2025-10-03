@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { AdminNav } from "@/components/admin-nav"
 import { ArrowLeft } from "lucide-react"
 import Image from "next/image"
 
@@ -25,11 +26,15 @@ export default function AdminPaymentsPage() {
   const [filteredPayments, setFilteredPayments] = useState<Payment[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [adminName, setAdminName] = useState("")
+  const [adminRole, setAdminRole] = useState("")
+  const [newBookingsCount, setNewBookingsCount] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
     checkAuth()
     fetchPayments()
+    fetchNewBookingsCount()
   }, [])
 
   useEffect(() => {
@@ -51,6 +56,13 @@ export default function AdminPaymentsPage() {
     } = await supabase.auth.getUser()
     if (!user) {
       router.push("/admin/login")
+      return
+    }
+
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+    if (profile) {
+      setAdminName(`${profile.first_name} ${profile.last_name}`)
+      setAdminRole(profile.role)
     }
   }
 
@@ -65,6 +77,18 @@ export default function AdminPaymentsPage() {
       setFilteredPayments(data || [])
     }
     setIsLoading(false)
+  }
+
+  const fetchNewBookingsCount = async () => {
+    const supabase = createClient()
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+    const { count } = await supabase
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", twentyFourHoursAgo)
+
+    setNewBookingsCount(count || 0)
   }
 
   const formatDate = (dateString: string) => {
@@ -102,6 +126,13 @@ export default function AdminPaymentsPage() {
       <AdminSidebar />
       <main className="flex-1 overflow-auto md:ml-0">
         <div className="p-6 md:p-8">
+          <AdminNav
+            adminName={adminName}
+            adminRole={adminRole}
+            pageTitle="Payments"
+            newBookingsCount={newBookingsCount}
+          />
+
           <div className="space-y-6">
             <ArrowLeft className="size-6 text-gray-500" />
 
