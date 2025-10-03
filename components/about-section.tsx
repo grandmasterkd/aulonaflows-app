@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Markdown from "./ui/markdown"
@@ -11,7 +11,8 @@ const aboutContent = [
   {
     title: "Hello! I'm Aulona",
     content: `
-I’m a yoga teacher and sound therapist — but to me, it’s so much more than a title. 
+I’m a yoga teacher and sound therapist, but to me, it’s so much more than a title. 
+
 This work lights me up. It’s what I love, what I believe in, and what I’m here to share.  
 
 Helping people feel safe in their bodies and connected to themselves is my purpose, 
@@ -36,7 +37,7 @@ It’s a big part of what fuels my purpose.
 As I continue to grow in this journey, I move forward for myself and for those who came before me. 
 For the strength in my roots, and the future I’m here to create.  
 
-Their journey gave me a beginning — the rest is mine to build.
+Their journey gave me a beginning, the rest is mine to build.
     `,
   },
   {
@@ -48,7 +49,7 @@ Through journaling, yoga, meditation, and learning more about myself, I began to
 These practices helped me feel more connected, calm, and clear within myself. 
 And the more I leaned into them, the more I knew: **this is what I’m meant to share.**  
 
-Now, my purpose is to guide and support others as they reconnect with themselves — in their own way, at their own pace.  
+Now, my purpose is to guide and support others as they reconnect with themselves, in their own way, at their own pace.  
 
 Because the healing you seek is already within you. And I’m here to help you find it.  
 
@@ -59,7 +60,7 @@ Even if you’re not seeking healing, these practices are good for the soul.
   {
     title: "What I Offer",
     content: `
-I offer more than just movement or stillness — I offer **space.**  
+I offer more than just movement or stillness, I offer **space.**  
 
 - Space to breathe.  
 - To feel.  
@@ -68,9 +69,9 @@ I offer more than just movement or stillness — I offer **space.**
 Through yoga, sound therapy, and mindful practices, I guide you back to the present.  
 
 Whether you join a cosy evening class, an energising morning flow, a deeply restful sound bath, 
-or a full-day retreat — every experience is designed with intention.  
+or a full-day retreat, every experience is designed with intention.  
 
-My offerings are rooted in softness, self-connection, and safety — welcoming you exactly as you are.  
+My offerings are rooted in softness, self-connection, and safety, welcoming you exactly as you are.  
 
 You don’t need to be flexible, spiritual, or experienced.  
 Just open. Curious.  
@@ -86,6 +87,8 @@ export function AboutSection() {
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalContent, setModalContent] = useState<{ title: string; content: string } | null>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -156,6 +159,18 @@ export function AboutSection() {
     setTouchEnd(null)
   }
 
+  const openModal = (title: string, content: string) => {
+    setModalContent({ title, content })
+    setIsModalOpen(true)
+    document.body.style.overflow = "hidden"
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setModalContent(null)
+    document.body.style.overflow = "unset"
+  }
+
   return (
     <section
       id="about-section"
@@ -182,14 +197,27 @@ export function AboutSection() {
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[0].title}</h2>
-                <Markdown content={aboutContent[0].content} />
+                <div className="md:hidden">
+                  <div className="line-clamp-3">
+                    <Markdown content={aboutContent[0].content} />
+                  </div>
+                  <button
+                    onClick={() => openModal(aboutContent[0].title, aboutContent[0].content)}
+                    className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
+                  >
+                    Read More 
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+                <div className="hidden md:block prose prose-base lg:prose-lg max-w-none leading-relaxed">
+                  <Markdown content={aboutContent[0].content} />
+                </div>
               </div>
             </div>
 
             {/* Right Column - Stacked Images */}
             <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
               <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
-                {/* Image 1 - Bottom layer, rotated left */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-300 ${
                     isVisible && !isTransitioning
@@ -199,7 +227,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
                     <Image
-                      src="/aulona-temp-1.jpg"
+                      src="/aulona-temp-1.webp"
                       alt="Aulona in meditation"
                       width={384}
                       height={500}
@@ -208,7 +236,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 2 - Middle layer, rotated right */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-500 ${
                     isVisible && !isTransitioning
@@ -218,7 +245,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-32 -md:translate-y-16">
                     <Image
-                      src="/aulona-temp-2.jpg"
+                      src="/aulona-temp-2.webp"
                       alt="Yoga studio"
                       width={384}
                       height={500}
@@ -227,7 +254,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 3 - Top layer, slight left rotation */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-700 ${
                     isVisible && !isTransitioning
@@ -237,7 +263,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-64 -md:translate-y-32">
                     <Image
-                      src="/aulona-temp-3.jpg"
+                      src="/aulona-temp-3.webp"
                       alt="Aulona practicing yoga"
                       width={384}
                       height={500}
@@ -267,14 +293,27 @@ export function AboutSection() {
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[1].title}</h2>
-                <Markdown content={aboutContent[1].content} />
+                <div className="md:hidden">
+                  <div className="line-clamp-3">
+                    <Markdown content={aboutContent[1].content} />
+                  </div>
+                  <button
+                    onClick={() => openModal(aboutContent[1].title, aboutContent[1].content)}
+                    className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
+                  >
+                    Read More 
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+                <div className="hidden md:block prose prose-base lg:prose-lg max-w-none leading-relaxed">
+                  <Markdown content={aboutContent[1].content} />
+                </div>
               </div>
             </div>
 
             {/* Right Column - Stacked Images */}
             <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
               <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
-                {/* Image 1 - Bottom layer, rotated left */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-300 ${
                     isVisible && !isTransitioning
@@ -284,7 +323,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
                     <Image
-                      src="/albania-location.jpg"
+                      src="/albania-location.webp"
                       alt="Albania scenery"
                       width={384}
                       height={500}
@@ -293,7 +332,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 2 - Middle layer, rotated right */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-500 ${
                     isVisible && !isTransitioning
@@ -312,7 +350,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 3 - Top layer, slight left rotation */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-700 ${
                     isVisible && !isTransitioning
@@ -322,7 +359,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-64 -md:translate-y-32">
                     <Image
-                      src="/albania-flag.jpg"
+                      src="/albania-flag.webp"
                       alt="Albania Flag"
                       width={384}
                       height={500}
@@ -352,14 +389,27 @@ export function AboutSection() {
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[2].title}</h2>
-                <Markdown content={aboutContent[2].content} />
+                <div className="md:hidden">
+                  <div className="line-clamp-3">
+                    <Markdown content={aboutContent[2].content} />
+                  </div>
+                  <button
+                    onClick={() => openModal(aboutContent[2].title, aboutContent[2].content)}
+                    className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
+                  >
+                    Read More 
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+                <div className="hidden md:block prose prose-base lg:prose-lg max-w-none leading-relaxed">
+                  <Markdown content={aboutContent[2].content} />
+                </div>
               </div>
             </div>
 
             {/* Right Column - Stacked Images */}
             <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
               <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
-                {/* Image 1 - Bottom layer, rotated left */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-300 ${
                     isVisible && !isTransitioning
@@ -369,7 +419,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
                     <Image
-                      src="/aulona-temp-4.jpg"
+                      src="/aulona-temp-4.webp"
                       alt="Aulona in meditation"
                       width={384}
                       height={500}
@@ -378,7 +428,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 2 - Middle layer, rotated right */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-500 ${
                     isVisible && !isTransitioning
@@ -388,7 +437,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-20 -md:translate-y-0">
                     <Image
-                      src="/aulona-temp-5.jpg"
+                      src="/aulona-temp-5.webp"
                       alt="Yoga studio"
                       width={384}
                       height={500}
@@ -397,7 +446,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 3 - Top layer, slight left rotation */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-700 ${
                     isVisible && !isTransitioning
@@ -407,7 +455,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-56 md:translate-y-4">
                     <Image
-                      src="/aulona-temp-6.jpg"
+                      src="/aulona-temp-6.webp"
                       alt="Aulona practicing yoga"
                       width={384}
                       height={500}
@@ -437,14 +485,27 @@ export function AboutSection() {
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[3].title}</h2>
-                <Markdown content={aboutContent[3].content} />
+                <div className="md:hidden">
+                  <div className="line-clamp-3">
+                    <Markdown content={aboutContent[3].content} />
+                  </div>
+                  <button
+                    onClick={() => openModal(aboutContent[3].title, aboutContent[3].content)}
+                    className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
+                  >
+                    Read More 
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </div>
+                <div className="hidden md:block prose prose-base lg:prose-lg max-w-none leading-relaxed">
+                  <Markdown content={aboutContent[3].content} />
+                </div>
               </div>
             </div>
 
             {/* Right Column - Stacked Images */}
-            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center  ">
+            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
               <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
-                {/* Image 1 - Bottom layer, rotated left */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-300 ${
                     isVisible && !isTransitioning
@@ -454,7 +515,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
                     <Image
-                      src="/aulona-about-why-2.jpg"
+                      src="/aulona-about-why-2.webp"
                       alt="Aulona in meditation"
                       width={384}
                       height={500}
@@ -463,7 +524,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 2 - Middle layer, rotated right */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-500 ${
                     isVisible && !isTransitioning
@@ -473,7 +533,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-40 -md:translate-y-16">
                     <Image
-                      src="/aulona-about-why-3.jpg"
+                      src="/aulona-about-why-3.webp"
                       alt="Yoga studio"
                       width={384}
                       height={500}
@@ -482,7 +542,6 @@ export function AboutSection() {
                   </div>
                 </div>
 
-                {/* Image 3 - Top layer, slight left rotation */}
                 <div
                   className={`absolute inset-0 transition-all duration-1000 delay-700 ${
                     isVisible && !isTransitioning
@@ -492,7 +551,7 @@ export function AboutSection() {
                 >
                   <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-12 -md:translate-y-32">
                     <Image
-                      src="/aulona-about-why.jpg"
+                      src="/aulona-about-why.webp"
                       alt="Aulona practicing yoga"
                       width={384}
                       height={500}
@@ -506,7 +565,7 @@ export function AboutSection() {
         )}
 
         {/* Pagination Controls */}
-        <div className="flex justify-center items-center gap-4 mt-0 md:mt-24  mb-4 lg:mb-16">
+        <div className="flex justify-center items-center gap-4 mt-0 md:mt-24 mb-4 lg:mb-16">
           <Button
             variant="outline"
             size="icon"
@@ -538,6 +597,45 @@ export function AboutSection() {
           </Button>
         </div>
       </div>
+
+      {/* Modal for full content on mobile */}
+      {isModalOpen && modalContent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={closeModal}>
+          {/* Backdrop */}
+          <div
+            className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+              isModalOpen ? "opacity-100" : "opacity-0"
+            }`}
+          />
+
+          {/* Modal Content */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`relative bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl transform transition-all duration-500 ease-out ${
+              isModalOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"
+            }`}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white px-6 py-5 flex items-center justify-between z-10">
+              <h3 className="headline-text text-xl md:text-2xl font-semibold text-[#654625]">{modalContent.title}</h3>
+              <button
+                onClick={closeModal}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-6 py-4 pb-8 overflow-y-auto max-h-[calc(85vh-80px)]">
+              <div className="prose prose-sm md:prose-base max-w-none leading-relaxed space-y-4">
+                <Markdown content={modalContent.content} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

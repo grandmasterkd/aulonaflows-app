@@ -9,10 +9,18 @@ export default function HomePage() {
   return (
     <main className="min-h-screen">
       <HeroSection />
-      <AboutSection />
-      <ServicesSection />
-      <ReviewsSection />
-      <FAQSection />
+      <div id="about">
+        <AboutSection />
+      </div>
+      <div id="services">
+        <ServicesSection />
+      </div>
+      <div id="clients">
+        <ReviewsSection />
+      </div>
+      <div id="faq">
+        <FAQSection />
+      </div>
       <FooterSection />
     </main>
   )

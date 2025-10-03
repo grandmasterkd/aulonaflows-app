@@ -1,9 +1,10 @@
 "use client"
 
 import type React from "react"
-
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { uploadImage } from "@/lib/supabase/storage"
+import { getImageUrl } from "@/lib/utils/images"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -12,9 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Plus, X } from "lucide-react"
+import { ArrowLeft, Plus, X, Filter, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { AdminNav } from "@/components/admin-nav"
 import Image from "next/image"
 
 interface Event {
@@ -39,6 +41,10 @@ export default function AdminEventsPage() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const filterRef = useRef<HTMLDivElement>(null)
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -52,10 +58,14 @@ export default function AdminEventsPage() {
     status: "active",
   })
   const router = useRouter()
+  const [adminName, setAdminName] = useState("")
+  const [adminRole, setAdminRole] = useState("")
+  const [newBookingsCount, setNewBookingsCount] = useState(0)
 
   useEffect(() => {
     checkAuth()
     fetchEvents()
+    fetchNewBookingsCount()
   }, [])
 
   useEffect(() => {
@@ -67,6 +77,22 @@ export default function AdminEventsPage() {
     }
   }, [message])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false)
+      }
+    }
+
+    if (isFilterOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isFilterOpen])
+
   const checkAuth = async () => {
     const supabase = createClient()
     const {
@@ -74,6 +100,13 @@ export default function AdminEventsPage() {
     } = await supabase.auth.getUser()
     if (!user) {
       router.push("/admin/login")
+      return
+    }
+
+    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+    if (profile) {
+      setAdminName(`${profile.first_name} ${profile.last_name}`)
+      setAdminRole(profile.role)
     }
   }
 
@@ -89,6 +122,18 @@ export default function AdminEventsPage() {
     setIsLoading(false)
   }
 
+  const fetchNewBookingsCount = async () => {
+    const supabase = createClient()
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+
+    const { count } = await supabase
+      .from("bookings")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", twentyFourHoursAgo)
+
+    setNewBookingsCount(count || 0)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -102,10 +147,20 @@ export default function AdminEventsPage() {
 
     const supabase = createClient()
 
-    let imageUrl = formData.image_url || "/placeholder.svg?height=400&width=600"
+    let imageUrl = formData.image_url
 
     if (selectedImage) {
-      imageUrl = formData.image_url
+      const uploadResult = await uploadImage(selectedImage)
+
+      if (uploadResult.error) {
+        setMessage({
+          type: "error",
+          text: `Failed to upload image: ${uploadResult.error}`,
+        })
+        return
+      }
+
+      imageUrl = uploadResult.relativePath
     }
 
     const eventData = {
@@ -117,7 +172,7 @@ export default function AdminEventsPage() {
       capacity: Number.parseInt(formData.capacity),
       price: Number.parseFloat(formData.price),
       instructor_name: formData.instructor_name,
-      image_url: imageUrl,
+      image_url: imageUrl || "events/placeholder.jpg",
       status: formData.status,
     }
 
@@ -229,6 +284,37 @@ export default function AdminEventsPage() {
     }
   }
 
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = statusFilter === "all" || event.status === statusFilter
+
+    return matchesSearch && matchesStatus
+  })
+
+  const handleFilterSelect = (filter: string) => {
+    setStatusFilter(filter)
+    setIsFilterOpen(false)
+  }
+
+  const getFilterLabel = () => {
+    switch (statusFilter) {
+      case "all":
+        return "All Events"
+      case "active":
+        return "Active"
+      case "completed":
+        return "Completed"
+      case "cancelled":
+        return "Canceled"
+      default:
+        return "Filter"
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center animate-pulse">
@@ -242,6 +328,13 @@ export default function AdminEventsPage() {
       <AdminSidebar />
       <main className="flex-1 overflow-auto md:ml-0">
         <div className="p-6 md:p-8">
+          <AdminNav
+            adminName={adminName}
+            adminRole={adminRole}
+            pageTitle="Events"
+            newBookingsCount={newBookingsCount}
+          />
+
           <div className="space-y-6">
             <ArrowLeft
               className="size-6 text-gray-500 cursor-pointer hover:text-gray-700"
@@ -265,7 +358,63 @@ export default function AdminEventsPage() {
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-medium">All Events</h2>
                   <div className="flex gap-2">
-                    <Input placeholder="Search events..." className="w-[250px] h-12 rounded-lg bg-white border-none" />
+                    <div className="relative" ref={filterRef}>
+                      <button
+                        onClick={() => setIsFilterOpen(!isFilterOpen)}
+                        className="h-12 px-4 rounded-lg bg-white hover:bg-gray-50 flex items-center justify-between gap-3 min-w-[140px] transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Filter className="w-4 h-4 text-gray-700" />
+                          <span className="text-sm text-gray-700">{getFilterLabel()}</span>
+                        </div>
+                        <ChevronDown
+                          className={`w-4 h-4 text-gray-700 transition-transform ${isFilterOpen ? "rotate-180" : ""}`}
+                        />
+                      </button>
+
+                      {isFilterOpen && (
+                        <div className="absolute top-full left-0 mt-1 w-[180px] bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                          <button
+                            onClick={() => handleFilterSelect("all")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "all" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            All Events
+                          </button>
+                          <button
+                            onClick={() => handleFilterSelect("active")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "active" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            Active
+                          </button>
+                          <button
+                            onClick={() => handleFilterSelect("completed")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "completed" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            Completed
+                          </button>
+                          <button
+                            onClick={() => handleFilterSelect("cancelled")}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                              statusFilter === "cancelled" ? "font-semibold text-gray-900" : "text-gray-700"
+                            }`}
+                          >
+                            Canceled
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <Input
+                      placeholder="Search events..."
+                      className="w-[250px] h-12 rounded-lg bg-white border-none"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                     <Button
                       onClick={handleAddNew}
                       className="brand-text-yellow h-12 px-3 rounded-lg bg-[#F7BA4C] hover:bg-[#F7BA4C]/90 text-black"
@@ -291,7 +440,7 @@ export default function AdminEventsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {events.map((event) => (
+                    {filteredEvents.map((event) => (
                       <TableRow key={event.id}>
                         <TableCell className="font-medium">{event.name}</TableCell>
                         <TableCell>{event.category}</TableCell>
@@ -439,7 +588,6 @@ export default function AdminEventsPage() {
                   <div>
                     <Label htmlFor="image_upload">Event Image</Label>
                     <div className="flex items-start gap-3 mt-2">
-                      {/* Add image square */}
                       <div className="relative">
                         <input
                           id="image_upload"
@@ -454,11 +602,14 @@ export default function AdminEventsPage() {
                         <p className="text-xs text-gray-500 text-center mt-1">Choose file</p>
                       </div>
 
-                      {/* Display uploaded image */}
                       {formData.image_url && (
                         <div className="relative">
                           <img
-                            src={formData.image_url || "/placeholder.svg"}
+                            src={
+                              formData.image_url.startsWith("blob:")
+                                ? formData.image_url
+                                : getImageUrl(formData.image_url)
+                            }
                             alt="Event preview"
                             className="w-20 h-20 object-cover rounded-lg border"
                           />

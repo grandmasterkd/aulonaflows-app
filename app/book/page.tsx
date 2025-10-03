@@ -166,9 +166,12 @@ export default function BookingOverviewPage() {
                   <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
-                    <div>
+                    <div className="mb-4" >
                     <h3 className="text-xl text-white font-medium">{event.name}</h3>
-                    <p className="text-xs text-gray-200 line-clamp-1">{event.description}</p>
+                    
+                    <p className="text-xs text-gray-200">
+                       {formatDate(event.date_time)}
+                    </p>
                     </div>
                  
 
@@ -185,6 +188,7 @@ export default function BookingOverviewPage() {
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Date:</span> {formatDate(event.date_time)}
                     </p>
+                    <p className="text-xs text-gray-200 line-clamp-1">{event.description}</p>
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Type:</span> {event.category}
                     </p>
