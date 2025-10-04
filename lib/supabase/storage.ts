@@ -55,15 +55,15 @@ export async function getUniqueFilename(originalFilename: string, supabase: any)
  * Uploads an image to Supabase Storage
  * Returns the relative path for database storage
  */
-export async function uploadImage(file: File): Promise<UploadResult> {
+export async function uploadImage(file: File, folder: "events" | "profiles" = "events"): Promise<UploadResult> {
   try {
     const supabase = createBrowserClient()
 
     // Get unique filename
     const uniqueFilename = await getUniqueFilename(file.name, supabase)
 
-    const filePath = `events/${uniqueFilename}`
-    const { data, error } = await supabase.storage.from("event-images").upload(filePath, file, {
+    const filePath = `${folder}/${uniqueFilename}`
+    const { data, error } = await supabase.storage.from("uploads").upload(filePath, file, {
       cacheControl: "3600",
       upsert: false,
     })

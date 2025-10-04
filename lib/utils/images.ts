@@ -3,12 +3,13 @@
  * Supports relative path storage for provider-agnostic architecture
  */
 
-const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "https://media.aulonaflows.com"
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+const STORAGE_BASE_URL = SUPABASE_URL ? `${SUPABASE_URL}/storage/v1/object/public/uploads` : ""
 
 /**
  * Constructs full image URL from relative path
- * @param path - Relative path stored in database (e.g., "events/image.jpg")
- * @returns Full URL (e.g., "https://media.aulonaflows.com/events/image.jpg")
+ * @param path - Relative path stored in database (e.g., "events/image.jpg" or "profiles/avatar.jpg")
+ * @returns Full URL (e.g., "https://[project].supabase.co/storage/v1/object/public/uploads/events/image.jpg")
  */
 export function getImageUrl(path: string | null | undefined): string {
   if (!path) {
@@ -20,14 +21,14 @@ export function getImageUrl(path: string | null | undefined): string {
     return path
   }
 
-  // Construct clean URL from relative path
-  return `${IMAGE_BASE_URL}/${path}`
+  const fullUrl = `${STORAGE_BASE_URL}/${path}`
+  return fullUrl
 }
 
 /**
  * Extracts relative path from full URL
  * @param url - Full URL or relative path
- * @returns Relative path (e.g., "events/image.jpg")
+ * @returns Relative path (e.g., "events/image.jpg" or "profiles/avatar.jpg")
  */
 export function getRelativePath(url: string): string {
   if (!url) return ""
@@ -46,7 +47,9 @@ export function getRelativePath(url: string): string {
     return pathname
       .replace(/^\//, "")
       .replace(/^storage\/v1\/object\/public\/event-images\//, "")
+      .replace(/^storage\/v1\/object\/public\/uploads\//, "")
       .replace(/^events\//, "events/")
+      .replace(/^profiles\//, "profiles/")
   } catch {
     return url
   }

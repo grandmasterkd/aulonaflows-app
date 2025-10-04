@@ -12,8 +12,11 @@ interface SettingsContentProps {
 
 export function SettingsContent({ adminName, adminRole, newBookingsCount, profile }: SettingsContentProps) {
   return (
+    <main>
+
+    <AdminNav adminName={adminName} adminRole={adminRole} pageTitle="Settings" newBookingsCount={newBookingsCount} />
     <div className="p-6 md:p-8">
-      <AdminNav adminName={adminName} adminRole={adminRole} pageTitle="Settings" newBookingsCount={newBookingsCount} />
+     
 
       <div className="space-y-6">
         <div className="grid gap-6">
@@ -61,5 +64,6 @@ export function SettingsContent({ adminName, adminRole, newBookingsCount, profil
         </div>
       </div>
     </div>
+     </main>
   )
 }

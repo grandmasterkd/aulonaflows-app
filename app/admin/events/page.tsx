@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Plus, X, Filter, ChevronDown } from "lucide-react"
+import { Plus, X, Filter, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminNav } from "@/components/admin-nav"
@@ -60,6 +60,7 @@ export default function AdminEventsPage() {
   const router = useRouter()
   const [adminName, setAdminName] = useState("")
   const [adminRole, setAdminRole] = useState("")
+  const [profileImage, setProfileImage] = useState<string | null>(null)
   const [newBookingsCount, setNewBookingsCount] = useState(0)
 
   useEffect(() => {
@@ -107,6 +108,7 @@ export default function AdminEventsPage() {
     if (profile) {
       setAdminName(`${profile.first_name} ${profile.last_name}`)
       setAdminRole(profile.role)
+      setProfileImage(profile.image_url)
     }
   }
 
@@ -327,20 +329,17 @@ export default function AdminEventsPage() {
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
       <main className="flex-1 overflow-auto md:ml-0">
-        <div className="p-6 md:p-8">
           <AdminNav
             adminName={adminName}
             adminRole={adminRole}
+            profileImage={profileImage}
             pageTitle="Events"
             newBookingsCount={newBookingsCount}
           />
+        <div className="p-6 md:p-8">
+        
 
           <div className="space-y-6">
-            <ArrowLeft
-              className="size-6 text-gray-500 cursor-pointer hover:text-gray-700"
-              onClick={() => window.history.back()}
-            />
-
             {message && (
               <div
                 className={`p-4 rounded-lg ${

@@ -22,13 +22,26 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/profiles/:path*',
+        destination: 'https://tkcsjgfgeeuumabatlnw.supabase.co/storage/v1/object/public/uploads/profiles/:path*',
+      },
+      {
         source: '/events/:path*',
-        destination: 'https://tkcsjgfgeeuumabatlnw.supabase.co/storage/v1/object/public/event-images/events/:path*',
+        destination: 'https://tkcsjgfgeeuumabatlnw.supabase.co/storage/v1/object/public/uploads/events/:path*',
       },
     ]
   },
   async headers() {
     return [
+      {
+        source: '/profiles/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
       {
         source: '/events/:path*',
         headers: [

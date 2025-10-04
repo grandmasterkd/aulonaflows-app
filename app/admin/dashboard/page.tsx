@@ -1,17 +1,15 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { getUserWithProfile } from "@/lib/supabase/auth"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { DashboardContent } from "@/components/dashboard-content"
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const { user, profile } = await getUserWithProfile()
 
-  if (error || !user) {
+  if (!user || !profile) {
     redirect("/admin/login")
   }
 
@@ -36,7 +34,7 @@ export default async function AdminDashboardPage() {
 
   // Process bookings by month
   const monthlyBookings = Array.from({ length: 12 }, (_, i) => ({
-    month: new Date(2024, i).toLocaleDateString("en-US", { month: "short" }),
+    month: new Date(currentYear, i).toLocaleDateString("en-US", { month: "short" }),
     bookings: 0,
   }))
 
@@ -97,8 +95,9 @@ export default async function AdminDashboardPage() {
     .select("*", { count: "exact", head: true })
     .gte("created_at", twentyFourHoursAgo)
 
-  const adminName = user.user_metadata?.first_name || user.email?.split("@")[0] || "Admin"
-  const adminRole = user.user_metadata?.role || "Administrator"
+  const adminName = `${profile.first_name} ${profile.last_name} 👋`
+  const adminRole = profile.role
+  const profileImage = profile.image_url
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -107,6 +106,7 @@ export default async function AdminDashboardPage() {
         <DashboardContent
           adminName={adminName}
           adminRole={adminRole}
+          profileImage={profileImage}
           totalRevenue={totalRevenue}
           totalCustomers={totalCustomers || 0}
           totalBookings={totalBookings || 0}
