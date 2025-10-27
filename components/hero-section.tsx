@@ -86,9 +86,9 @@ export function HeroSection() {
 
         {/* Headline */}
         <h1 className="headline-text leading-normal md:leading-normal text-3xl md:text-5xl font-semibold mb-3 text-white">
-          The healing you
+          The Healing You
           <br />
-          seek lives within you
+          Seek Lives Within You
         </h1>
 
         {/* Subtext */}
