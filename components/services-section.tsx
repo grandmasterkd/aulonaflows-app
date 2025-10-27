@@ -118,14 +118,14 @@ export function ServicesSection() {
             onTouchEnd={handleTouchEnd}
           >
             <div
-              className={`h-[400px] md:h-[580px] rounded-3xl overflow-hidden transition-transform duration-200 ${isDragging ? "scale-[0.98]" : ""}`}
+              className={`w-full mx-auto h-full md:h-[580px] rounded-3xl overflow-hidden transition-transform duration-200 ${isDragging ? "scale-[0.98]" : ""}`}
             >
               <Image
                 src={services[currentService].image || "/placeholder.svg"}
                 alt={services[currentService].title}
                 width={500}
                 height={450}
-                className="w-full h-full object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-full aspect-auto object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
               />
             </div>
             <div className="mt-8 flex md:hidden justify-center items-center gap-4 pb-8">

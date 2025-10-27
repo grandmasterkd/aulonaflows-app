@@ -219,7 +219,7 @@ export function AboutSection() {
 
             {/* Right Column - Single Image */}
             <div className="relative md:pr-44 pr-0 mt-0 pt-0 md:pt-24 pb-8 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
-              <div className="mx-auto w-full md:w-96 h-[450px] md:h-[500px]">
+              <div className="mx-auto w-full h-[450px] md:h-[500px]">
                 <div
                   className={`w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-1000 ${
                     isVisible && !isTransitioning ? "opacity-100 scale-100" : "opacity-0 scale-95"
