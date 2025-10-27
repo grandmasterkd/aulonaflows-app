@@ -103,7 +103,7 @@ export function ServicesSection() {
   return (
     <section
       ref={sectionRef}
-      className="py-4 pb-8 md:pb-0 md:py-0 min-h-screen grid place-items-center px-8 md:px-24 lg:px-44"
+      className="py-4 pb-8 md:pb-0 md:py-0 h-auto md:min-h-screen grid place-items-center px-8 md:px-24 lg:px-44"
     >
       <div className="container mx-auto">
         <div className="flex flex-col-reverse md:grid md:grid-cols-2 gap-8 md:gap-16 items-center">
