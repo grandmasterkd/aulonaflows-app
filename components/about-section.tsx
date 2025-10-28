@@ -115,7 +115,7 @@ export function AboutSection() {
     setTimeout(() => {
       setCurrentPage((prev) => (prev + 1) % 4)
       setIsTransitioning(false)
-    }, 200)
+    }, 300)
   }
 
   const prevPage = () => {
@@ -125,7 +125,7 @@ export function AboutSection() {
     setTimeout(() => {
       setCurrentPage((prev) => (prev - 1 + 4) % 4)
       setIsTransitioning(false)
-    }, 200)
+    }, 300)
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -147,8 +147,8 @@ export function AboutSection() {
     }
 
     const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > 50
-    const isRightSwipe = distance < -50
+    const isLeftSwipe = distance > 30
+    const isRightSwipe = distance < -30
 
     if (isLeftSwipe) {
       nextPage()
@@ -418,15 +418,15 @@ export function AboutSection() {
           </Button>
 
           <div className="flex gap-2">
-            {[0, 1, 2, 3].map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentPage === page ? "bg-[#654625] scale-125" : "bg-gray-300 hover:bg-gray-400"
-                }`}
-              />
-            ))}
+             {[0, 1, 2, 3].map((page) => (
+               <button
+                 key={page}
+                 onClick={() => setCurrentPage(page)}
+                 className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                   currentPage === page ? "bg-[#654625] scale-125" : "bg-gray-300 hover:bg-gray-400"
+                 }`}
+               />
+             ))}
           </div>
 
           <Button

@@ -20,11 +20,18 @@ export function HeroSection() {
   return (
     <section className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat flex items-end">
       <Image
-        src="/home-herobg.webp"
+        src="/aulonaflows-mobilehero.webp"
         alt="AulonaFlows Hero Background"
         layout="fill"
         objectFit="cover"
-        className="mix-blend-luminosity"
+        className="md:hidden mix-blend-luminosity"
+      />
+      <Image
+        src="/aulonaflows-desktophero.webp"
+        alt="AulonaFlows Hero Background"
+        layout="fill"
+        objectFit="cover"
+        className="hidden md:block mix-blend-luminosity"
       />
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/30" />

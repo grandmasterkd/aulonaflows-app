@@ -42,6 +42,7 @@ export function ServicesSection() {
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -61,11 +62,23 @@ export function ServicesSection() {
   }, [])
 
   const nextService = () => {
-    setCurrentService((prev) => (prev + 1) % services.length)
+    if (isTransitioning) return
+    setIsTransitioning(true)
+
+    setTimeout(() => {
+      setCurrentService((prev) => (prev + 1) % services.length)
+      setIsTransitioning(false)
+    }, 300)
   }
 
   const prevService = () => {
-    setCurrentService((prev) => (prev - 1 + services.length) % services.length)
+    if (isTransitioning) return
+    setIsTransitioning(true)
+
+    setTimeout(() => {
+      setCurrentService((prev) => (prev - 1 + services.length) % services.length)
+      setIsTransitioning(false)
+    }, 300)
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -80,14 +93,14 @@ export function ServicesSection() {
   }
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) {
+    if (isTransitioning || !touchStart || !touchEnd) {
       setIsDragging(false)
       return
     }
 
     const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > 50
-    const isRightSwipe = distance < -50
+    const isLeftSwipe = distance > 30
+    const isRightSwipe = distance < -30
 
     if (isLeftSwipe) {
       nextService()
@@ -111,7 +124,7 @@ export function ServicesSection() {
           <section
             className={`transition-all duration-1000 ease-out ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
+            } ${isTransitioning ? "opacity-50 scale-95" : "opacity-100 scale-100"}`}
             style={{ transitionDelay: "200ms" }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -128,19 +141,19 @@ export function ServicesSection() {
                 className="w-full h-full aspect-auto object-cover rounded-3xl transition-transform duration-700 group-hover:scale-105"
               />
             </div>
-            <div className="mt-8 flex md:hidden justify-center items-center gap-4 pb-8">
-              <div className="flex gap-2">
-                {services.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentService(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 ${
-                      currentService === index ? "bg-[#654625] scale-110" : "bg-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+             <div className="mt-8 flex md:hidden justify-center items-center gap-4 pb-8">
+               <div className="flex gap-2">
+                 {services.map((_, index) => (
+                   <button
+                     key={index}
+                     onClick={() => setCurrentService(index)}
+                     className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                       currentService === index ? "bg-[#654625] scale-110" : "bg-gray-300"
+                     }`}
+                   />
+                 ))}
+               </div>
+             </div>
           </section>
 
           {/* Right Column - Content */}
@@ -168,14 +181,18 @@ export function ServicesSection() {
               }`}
               style={{ transitionDelay: "600ms" }}
             >
-              <div className="space-y-3 md:space-y-4">
-                <h2 className="headline-text leading-normal md:leading-normal text-2xl md:text-4xl font-semibold transition-all duration-500">
-                  {services[currentService].title}
-                </h2>
-                <p className="paragraph-text text-sm md:text-base leading-relaxed transition-all duration-500">
-                  {services[currentService].description}
-                </p>
-              </div>
+               <div className="space-y-3 md:space-y-4">
+                 <h2 className={`headline-text leading-normal md:leading-normal text-2xl md:text-4xl font-semibold transition-all duration-500 ${
+                   isTransitioning ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
+                 }`}>
+                   {services[currentService].title}
+                 </h2>
+                 <p className={`paragraph-text text-sm md:text-base leading-relaxed transition-all duration-500 ${
+                   isTransitioning ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
+                 }`}>
+                   {services[currentService].description}
+                 </p>
+               </div>
 
               <Link href="/book" className="flex items-center gap-x-1.5 group w-fit">
                 <div className="w-fit rounded-full p-1.5 h-auto bg-transparent border-2 border-[#FDC7AA] transition-all duration-300 group-hover:border-[#FFB366] group-hover:shadow-lg">
@@ -196,24 +213,24 @@ export function ServicesSection() {
             </div>
 
             {/* Navigation */}
-            <div
-              className={`hidden md:flex items-center gap-4 pb-8 transition-all duration-1000 ease-out ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
-              style={{ transitionDelay: "800ms" }}
-            >
-              <div className="flex gap-2">
-                {services.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentService(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 ${
-                      currentService === index ? "bg-[#654625] scale-110" : "bg-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
+             <div
+               className={`hidden md:flex items-center gap-4 pb-8 transition-all duration-1000 ease-out ${
+                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+               }`}
+               style={{ transitionDelay: "800ms" }}
+             >
+               <div className="flex gap-2">
+                 {services.map((_, index) => (
+                   <button
+                     key={index}
+                     onClick={() => setCurrentService(index)}
+                     className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                       currentService === index ? "bg-[#654625] scale-110" : "bg-gray-300"
+                     }`}
+                   />
+                 ))}
+               </div>
+             </div>
           </div>
         </div>
       </div>
