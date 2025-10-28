@@ -76,6 +76,10 @@ export default function BookEventPage() {
       console.error("Error fetching event:", error)
       router.push("/book")
     } else {
+   
+      if (data.image_url && !data.image_url.startsWith('http')) {
+        data.image_url = supabase.storage.from('uploads').getPublicUrl(data.image_url).data.publicUrl
+      }
       setEvent(data)
     }
     setIsLoading(false)
@@ -166,13 +170,16 @@ export default function BookEventPage() {
   }
 
   return (
-    <main className="min-h-screen mx-auto grid place-items-center px-8 md:px-4 py-12 md:py-0">
-      <section className="max-w-4xl ">
+    <main className="min-h-screen w-full grid place-items-center px-8 md:px-[21rem] py-12 md:py-0">
+    
         {/* Back Button */}
-        <Link href="/book" className="inline-flex items-center gap-2 text-[#654625] hover:text-[#4a3319] mb-6">
+        <div className="w-full" >
+        <Link href="/book" className="w-fit inline-flex text-left gap-2 text-[#654625] hover:text-[#4a3319] mb-6">
           <ArrowLeft size={20} />
           Back to Events
         </Link>
+        </div>
+       
 
         {message && (
           <div
@@ -187,15 +194,17 @@ export default function BookEventPage() {
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div
-            className="h-[400px] md:h-full bg-cover bg-gray-200 rounded-3xl"
-            style={{
-              backgroundImage: `url(${event.image_url || "/diverse-yoga-class.png"})`,
-            }}
-          ></div>
+        <div className="w-full grid md:grid-cols-2 gap-8">
+          <div className="relative h-[400px] md:h-full bg-gray-200 rounded-3xl overflow-hidden">
+            <Image
+              src={event?.image_url || "/diverse-yoga-class.png"}
+              alt={event.name}
+              fill
+              style={{ objectFit: "cover" }}
+            />
+          </div>
 
-          <div>
+       
             <div className="w-full flex flex-col items-start gap-y-6 md:gap-y-4">
               <div>
                 <h1 className="headline-text leading-normal lg:leading-normal md:leading-normal text-3xl md:text-4xl lg:text-5xl font-bold">
@@ -229,9 +238,8 @@ export default function BookEventPage() {
               </div>
             </div>
           </div>
-        </div>
-        <section className="mt-8 md:mt-14 ">
-          <div>
+    
+        <section className="w-full mt-8 md:mt-14 ">
             {isFullyBooked() ? (
               <div className="text-center py-8">
                 <p className="text-lg text-gray-600 mb-4">This event is fully booked</p>
@@ -245,26 +253,26 @@ export default function BookEventPage() {
             ) : (
               <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 md:grid-cols-2 items-start gap-6">
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label className="w-full" htmlFor="name">Full Name</Label>
                   <Input
                     id="name"
                     type="text"
                     value={bookingForm.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
                     required
-                    className="bg-gray-200 h-14 border-none rounded-xl mt-1"
+                    className="bg-gray-200 h-14 border-none rounded-xl mt-1 w-full"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label className="w-full" htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={bookingForm.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     required
-                    className="bg-gray-200 h-14 border-none rounded-xl mt-1"
+                    className="bg-gray-200 h-14 border-none rounded-xl mt-1 w-full"
                   />
                 </div>
 
@@ -303,9 +311,9 @@ export default function BookEventPage() {
                 </div>
               </form>
             )}
-          </div>
+     
         </section>
-      </section>
+ 
     </main>
   )
 }
