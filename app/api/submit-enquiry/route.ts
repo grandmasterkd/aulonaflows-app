@@ -41,8 +41,14 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Error inserting enquiry:", error)
+      console.error("Error details:", {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
       return NextResponse.json(
-        { error: "Failed to submit enquiry. Please try again." },
+        { error: `Failed to submit enquiry: ${error.message}` },
         { status: 500 }
       )
     }

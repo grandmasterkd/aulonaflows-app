@@ -115,38 +115,11 @@ export default function EnquiryPage() {
         </div>
 
 
-        <div className="w-full grid lg:grid-cols-2 gap-8">
-          <div className="relative h-[400px] lg:h-full bg-gray-200 rounded-3xl overflow-hidden">
-            <Image
-              src="/aulona-personal-5.webp"
-              alt="Aulona"
-              fill
-              style={{ objectFit: "cover" }}
-            />
-          </div>
-
-
-            <div className="w-full flex flex-col items-start gap-y-6 md:gap-y-4">
-              <div>
-                <h1 className="headline-text leading-normal lg:leading-normal md:leading-normal text-3xl md:text-4xl lg:text-5xl font-bold">
-                  Get In Touch
-                </h1>
-                <p className="paragraph-text text-sm md:text-base leading-relaxed">
-                  Have a question or want to learn more about our services? We'd love to hear from you.
-                  Fill out the form below and we'll get back to you as soon as possible.
-                </p>
-              </div>
-
-              <span className="w-full h-0.5 bg-gray-200 "></span>
-
-              <div className="w-full">
-                <p className="paragraph-text text-sm md:text-base leading-relaxed">
-                  Whether you're interested in private sessions, corporate wellness programs,
-                  or just want to know more about what we offer, we're here to help you on your wellness journey.
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="w-full grid place-items-start gap-8">
+          <h1 className="headline-text leading-normal lg:leading-normal md:leading-normal w-full lg:w-1/2 text-3xl md:text-4xl lg:text-5xl font-bold">
+            What Do You Have In Mind?
+          </h1>
+        </div>
 
         <section className="w-full mt-10 ">
           <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 lg:grid-cols-2 items-start gap-6">

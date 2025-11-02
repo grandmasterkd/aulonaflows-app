@@ -41,7 +41,7 @@ export function HeroSection() {
         href="/enquiry"
         className="hidden md:block absolute top-6 right-6 z-50 bg-black/30 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 hover:bg-white/20 transition-all duration-300 text-white text-sm font-medium"
       >
-        Make an enquiry
+        Make An Enquiry
       </Link>
 
       <button
