@@ -54,9 +54,9 @@ export async function POST(request: NextRequest) {
       // Create booking in database
       const { error: bookingError } = await supabase.from("bookings").insert({
         event_id: eventId,
-        customer_name: bookingData.name,
-        customer_email: bookingData.email,
-        customer_phone: bookingData.phone,
+        name: bookingData.name,
+        email: bookingData.email,
+        phone: bookingData.phone,
         has_health_conditions: bookingData.has_health_conditions,
         health_conditions: bookingData.health_conditions || "",
         agreed_to_terms: bookingData.agreed_to_terms,

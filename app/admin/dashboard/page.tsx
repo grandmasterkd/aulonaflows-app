@@ -3,9 +3,15 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserWithProfile } from "@/lib/supabase/auth"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { DashboardContent } from "@/components/dashboard-content"
+import type { Metadata } from "next"
 
 interface DashboardPageProps {
   searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export const metadata: Metadata = {
+  title: "Dashboard . Aulona Flows",
+  description: "Admin dashboard for Aulona Flows - manage bookings, events, and clients.",
 }
 
 export default async function AdminDashboardPage({ searchParams }: DashboardPageProps) {
@@ -99,16 +105,16 @@ export default async function AdminDashboardPage({ searchParams }: DashboardPage
       .eq("status", "active")
       .order("date_time", { ascending: true })
       .limit(6),
-    // Recent bookings (only paid ones)
-    supabase
-      .from("bookings")
-      .select(`
-        *,
-        events(name)
-      `)
-      .eq("payment_status", "paid")
-      .order("created_at", { ascending: false })
-      .limit(5),
+     // Recent bookings (only paid ones)
+     supabase
+       .from("bookings")
+       .select(`
+         *,
+         events(name)
+       `)
+       .eq("payment_status", "paid")
+       .order("created_at", { ascending: false })
+       .limit(5),
     // New bookings count
     supabase
       .from("bookings")
