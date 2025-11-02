@@ -5,11 +5,18 @@ import { CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
-async function PaymentSuccessContent({ sessionId }: { sessionId: string }) {
+async function PaymentSuccessContent({ sessionId, paymentIntentId }: { sessionId?: string; paymentIntentId?: string }) {
   const supabase = await createClient()
 
-  // Get payment details
-  const { data: payment } = await supabase.from("payments").select("*").eq("stripe_session_id", sessionId).single()
+  let payment = null
+  if (sessionId) {
+    // Get payment details for checkout
+    const { data } = await supabase.from("payments").select("*").eq("stripe_session_id", sessionId).single()
+    payment = data
+  } else if (paymentIntentId) {
+    // For Apple Pay, we can fetch from Stripe or show generic
+    // Since we don't store in payments table, show basic success
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -29,7 +36,7 @@ async function PaymentSuccessContent({ sessionId }: { sessionId: string }) {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="font-medium">Amount:</span>
-                <span>${payment.amount}</span>
+                <span>£{payment.amount}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Status:</span>
@@ -51,7 +58,7 @@ async function PaymentSuccessContent({ sessionId }: { sessionId: string }) {
                 <Link href="/">Return Home</Link>
               </Button>
               <Button asChild variant="outline" className="flex-1 bg-transparent">
-                <Link href="/events">View Events</Link>
+                <Link href="/book">View Events</Link>
               </Button>
             </div>
           </div>

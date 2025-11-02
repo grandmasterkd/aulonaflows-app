@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Eye } from "lucide-react"
+import { Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { AdminSidebar } from "@/components/admin-sidebar"
@@ -41,6 +41,7 @@ export default function AdminClientsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [adminName, setAdminName] = useState("")
   const [adminRole, setAdminRole] = useState("")
+  const [profileImage, setProfileImage] = useState<string | null>(null)
   const [newBookingsCount, setNewBookingsCount] = useState(0)
   const router = useRouter()
 
@@ -77,6 +78,7 @@ export default function AdminClientsPage() {
     if (profile) {
       setAdminName(`${profile.first_name} ${profile.last_name}`)
       setAdminRole(profile.role)
+      setProfileImage(profile.image_url)
     }
   }
 
@@ -211,20 +213,17 @@ export default function AdminClientsPage() {
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
       <main className="flex-1 overflow-auto md:ml-0">
-        <div className="p-6 md:p-8">
-          <AdminNav
+        <AdminNav
             adminName={adminName}
             adminRole={adminRole}
+            profileImage={profileImage}
             pageTitle="Clients"
             newBookingsCount={newBookingsCount}
           />
+        <div className="p-6 md:p-8">
+          
 
           <div className="space-y-6">
-            <ArrowLeft
-              className="size-6 text-gray-500 cursor-pointer hover:text-gray-700"
-              onClick={() => window.history.back()}
-            />
-
             <section>
               <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
                 <div className="flex justify-between items-center">

@@ -49,11 +49,6 @@ export const faqsData: FAQ[] = [
     answer:
       "I understand life happens and plans can change. If you can no longer attend a class or event, please let me know as soon as possible so I can offer the space to someone else. Classes: require at least 24 hours’ notice. ",
   },
-   {
-    question: "How do cancellations work?",
-    answer:
-      "I understand life happens and plans can change. If you can no longer attend a class or event, please let me know as soon as possible so I can offer the space to someone else. Classes: require at least 24 hours’ notice. Sound baths & special events: require at least 48 hours’ notice. Due to limited spaces, I’m unable to offer refunds for late or same-day cancellations.",
-  },
   {
     question: "Do you offer private sessions?",
     answer:

@@ -20,14 +20,29 @@ export function HeroSection() {
   return (
     <section className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat flex items-end">
       <Image
-        src="/home-herobg.webp"
+        src="/aulonaflows-mobilehero.webp"
         alt="AulonaFlows Hero Background"
         layout="fill"
         objectFit="cover"
-        className="mix-blend-luminosity"
+        className="md:hidden mix-blend-luminosity"
+      />
+      <Image
+        src="/aulonaflows-desktophero.webp"
+        alt="AulonaFlows Hero Background"
+        layout="fill"
+        objectFit="cover"
+        className="hidden md:block mix-blend-luminosity"
       />
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/30" />
+
+      {/* Make an enquiry button - desktop */}
+      <Link
+        href="/enquiry"
+        className="hidden md:block absolute top-6 right-6 z-50 bg-black/30 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 hover:bg-white/20 transition-all duration-300 text-white text-sm font-medium"
+      >
+        Make An Enquiry
+      </Link>
 
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -67,13 +82,20 @@ export function HeroSection() {
           >
             Frequently Asked Questions
           </button>
-          <Link
-            href="/book"
-            className="bg-white backdrop-blur-sm w-fit h-auto p-4 px-6 rounded-full text-lg font-medium hover:text-[#FFDDB9] transition-colors duration-300"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Book A Class
-          </Link>
+           <Link
+             href="/book"
+             className="bg-white backdrop-blur-sm w-fit h-auto p-4 px-6 rounded-full text-lg font-medium hover:text-[#FFDDB9] transition-colors duration-300"
+             onClick={() => setIsMobileMenuOpen(false)}
+           >
+             Book A Class
+           </Link>
+           <Link
+             href="/enquiry"
+             className="text-white text-xl font-medium hover:text-[#FFDDB9] transition-colors duration-300"
+             onClick={() => setIsMobileMenuOpen(false)}
+           >
+             Make an enquiry
+           </Link>
         </nav>
       </div>
 
@@ -86,9 +108,9 @@ export function HeroSection() {
 
         {/* Headline */}
         <h1 className="headline-text leading-normal md:leading-normal text-3xl md:text-5xl font-semibold mb-3 text-white">
-          The healing you
+          The Healing You
           <br />
-          seek lives within you
+          Seek Lives Within You
         </h1>
 
         {/* Subtext */}

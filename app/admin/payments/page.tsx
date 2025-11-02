@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminNav } from "@/components/admin-nav"
-import { ArrowLeft } from "lucide-react"
 import Image from "next/image"
 
 interface Payment {
@@ -28,6 +27,7 @@ export default function AdminPaymentsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [adminName, setAdminName] = useState("")
   const [adminRole, setAdminRole] = useState("")
+  const [profileImage, setProfileImage] = useState<string | null>(null)
   const [newBookingsCount, setNewBookingsCount] = useState(0)
   const router = useRouter()
 
@@ -63,6 +63,7 @@ export default function AdminPaymentsPage() {
     if (profile) {
       setAdminName(`${profile.first_name} ${profile.last_name}`)
       setAdminRole(profile.role)
+      setProfileImage(profile.image_url)
     }
   }
 
@@ -125,17 +126,17 @@ export default function AdminPaymentsPage() {
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar />
       <main className="flex-1 overflow-auto md:ml-0">
-        <div className="p-6 md:p-8">
           <AdminNav
             adminName={adminName}
             adminRole={adminRole}
+            profileImage={profileImage}
             pageTitle="Payments"
             newBookingsCount={newBookingsCount}
           />
+        <div className="p-6 md:p-8">
+        
 
           <div className="space-y-6">
-            <ArrowLeft className="size-6 text-gray-500" />
-
             <section>
               <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
                 <div className="flex justify-between items-center">

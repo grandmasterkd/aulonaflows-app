@@ -95,6 +95,8 @@ export function AboutSection() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true)
+        } else {
+          setIsVisible(false)
         }
       },
       { threshold: 0.1 },
@@ -113,7 +115,7 @@ export function AboutSection() {
     setTimeout(() => {
       setCurrentPage((prev) => (prev + 1) % 4)
       setIsTransitioning(false)
-    }, 200)
+    }, 300)
   }
 
   const prevPage = () => {
@@ -123,7 +125,7 @@ export function AboutSection() {
     setTimeout(() => {
       setCurrentPage((prev) => (prev - 1 + 4) % 4)
       setIsTransitioning(false)
-    }, 200)
+    }, 300)
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -145,8 +147,8 @@ export function AboutSection() {
     }
 
     const distance = touchStart - touchEnd
-    const isLeftSwipe = distance > 50
-    const isRightSwipe = distance < -50
+    const isLeftSwipe = distance > 30
+    const isRightSwipe = distance < -30
 
     if (isLeftSwipe) {
       nextPage()
@@ -183,17 +185,17 @@ export function AboutSection() {
         {/* Page 1: Hello! I'm Aulona */}
         {currentPage === 0 && (
           <div
-            className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-500 ease-out transform ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            className={`grid md:grid-cols-2 gap-12 items-center place-items-center transition-all duration-500 ease-out transform ${
+              isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95"
             } ${isDragging ? "scale-95" : "scale-100"} ${
-              isTransitioning ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
+              isTransitioning ? "opacity-0 translate-x-8 scale-95" : "opacity-100 translate-x-0 scale-100"
             }`}
           >
             {/* Left Column - Single Text Container */}
-            <div className="mt-0 lg:mt-40 space-y-12">
+            <div className="mt-0 lg:mt-40 space-y-8">
               <div
                 className={`space-y-4 transition-all duration-700 delay-200 ${
-                  isVisible && !isTransitioning ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                  isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[0].title}</h2>
@@ -205,7 +207,7 @@ export function AboutSection() {
                     onClick={() => openModal(aboutContent[0].title, aboutContent[0].content)}
                     className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
                   >
-                    Read More 
+                    Read More
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </button>
                 </div>
@@ -215,61 +217,21 @@ export function AboutSection() {
               </div>
             </div>
 
-            {/* Right Column - Stacked Images */}
-            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
-              <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
+            {/* Right Column - Single Image */}
+            <div className="relative md:pr-44 pr-0 mt-0 pt-0 md:pt-24 pb-8 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
+              <div className="mx-auto w-full h-[450px] md:h-[500px]">
                 <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-300 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-8deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[-15deg] translate-x-8 translate-y-8"
+                  className={`w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-1000 ${
+                    isVisible && !isTransitioning ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-                    <Image
-                      src="/aulona-temp-1.webp"
-                      alt="Aulona in meditation"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-500 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[6deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-32 -md:translate-y-16">
-                    <Image
-                      src="/aulona-temp-2.webp"
-                      alt="Yoga studio"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-700 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-3deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-64 -md:translate-y-32">
-                    <Image
-                      src="/aulona-temp-3.webp"
-                      alt="Aulona practicing yoga"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <Image
+                    src="/aulona-temp-3.webp"
+                    alt="Aulona practicing yoga"
+                    width={384}
+                    height={500}
+                    className="w-full h-full object-cover aspect-auto"
+                  />
                 </div>
               </div>
             </div>
@@ -279,17 +241,17 @@ export function AboutSection() {
         {/* Page 2: My Roots */}
         {currentPage === 1 && (
           <div
-            className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-500 ease-out transform ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            className={`grid md:grid-cols-2 gap-12 items-center place-items-center transition-all duration-500 ease-out transform ${
+              isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95"
             } ${isDragging ? "scale-95" : "scale-100"} ${
-              isTransitioning ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
+              isTransitioning ? "opacity-0 translate-x-8 scale-95" : "opacity-100 translate-x-0 scale-100"
             }`}
           >
             {/* Left Column - Single Text Container */}
-            <div className="mt-0 lg:mt-40 space-y-12">
+            <div className="mt-0 lg:mt-40 space-y-8">
               <div
                 className={`space-y-4 transition-all duration-700 delay-200 ${
-                  isVisible && !isTransitioning ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                  isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[1].title}</h2>
@@ -301,7 +263,7 @@ export function AboutSection() {
                     onClick={() => openModal(aboutContent[1].title, aboutContent[1].content)}
                     className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
                   >
-                    Read More 
+                    Read More
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </button>
                 </div>
@@ -311,61 +273,21 @@ export function AboutSection() {
               </div>
             </div>
 
-            {/* Right Column - Stacked Images */}
-            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
-              <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
+            {/* Right Column - Single Image */}
+            <div className="relative md:pr-44 pr-0 mt-0 pt-0 md:pt-24 pb-8 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
+              <div className="mx-auto w-full md:w-96 h-[450px] md:h-[500px]">
                 <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-300 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-4deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[-15deg] translate-x-8 translate-y-8"
+                  className={`w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-1000 ${
+                    isVisible && !isTransitioning ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-                    <Image
-                      src="/albania-location.webp"
-                      alt="Albania scenery"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-500 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[6deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-32 -md:translate-y-16">
-                    <Image
-                      src="/aulonaflows-logo-dark.svg"
-                      alt="Aulona Flows Logo"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-700 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-3deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-64 -md:translate-y-32">
-                    <Image
-                      src="/albania-flag.webp"
-                      alt="Albania Flag"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <Image
+                    src="/aulona-personal-5.webp"
+                    alt="Albania Flag"
+                    width={384}
+                    height={500}
+                    className="w-full h-full object-cover aspect-auto"
+                  />
                 </div>
               </div>
             </div>
@@ -375,17 +297,17 @@ export function AboutSection() {
         {/* Page 3: My Why */}
         {currentPage === 2 && (
           <div
-            className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-500 ease-out transform ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            className={`grid md:grid-cols-2 gap-12 items-center place-items-center transition-all duration-500 ease-out transform ${
+              isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95"
             } ${isDragging ? "scale-95" : "scale-100"} ${
-              isTransitioning ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
+              isTransitioning ? "opacity-0 translate-x-8 scale-95" : "opacity-100 translate-x-0 scale-100"
             }`}
           >
             {/* Left Column - Single Text Container */}
-            <div className="mt-0 lg:mt-40 space-y-12">
+            <div className="mt-0 lg:mt-40 space-y-8">
               <div
                 className={`space-y-4 transition-all duration-700 delay-200 ${
-                  isVisible && !isTransitioning ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                  isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[2].title}</h2>
@@ -397,7 +319,7 @@ export function AboutSection() {
                     onClick={() => openModal(aboutContent[2].title, aboutContent[2].content)}
                     className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
                   >
-                    Read More 
+                    Read More
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </button>
                 </div>
@@ -407,61 +329,21 @@ export function AboutSection() {
               </div>
             </div>
 
-            {/* Right Column - Stacked Images */}
-            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
-              <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
+            {/* Right Column - Single Image */}
+           <div className="relative md:pr-44 pr-0 mt-0 pt-0 md:pt-24 pb-8 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
+              <div className="mx-auto w-full md:w-96 h-[450px] md:h-[500px]">
                 <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-300 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-8deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[-15deg] translate-x-8 translate-y-8"
+                  className={`w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-1000 ${
+                    isVisible && !isTransitioning ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-                    <Image
-                      src="/aulona-temp-4.webp"
-                      alt="Aulona in meditation"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-500 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[2deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-20 -md:translate-y-0">
-                    <Image
-                      src="/aulona-temp-5.webp"
-                      alt="Yoga studio"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-700 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-3deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-56 md:translate-y-4">
-                    <Image
-                      src="/aulona-temp-6.webp"
-                      alt="Aulona practicing yoga"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <Image
+                    src="/aulona-temp-6.webp"
+                    alt="Aulona practicing yoga"
+                    width={384}
+                    height={500}
+                    className="w-full h-full object-cover aspect-auto"
+                  />
                 </div>
               </div>
             </div>
@@ -471,17 +353,17 @@ export function AboutSection() {
         {/* Page 4: What I Offer */}
         {currentPage === 3 && (
           <div
-            className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-500 ease-out transform ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            className={`grid md:grid-cols-2 gap-12 items-center place-items-center transition-all duration-500 ease-out transform ${
+              isVisible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-10 scale-95"
             } ${isDragging ? "scale-95" : "scale-100"} ${
-              isTransitioning ? "opacity-0 translate-x-8" : "opacity-100 translate-x-0"
+              isTransitioning ? "opacity-0 translate-x-8 scale-95" : "opacity-100 translate-x-0 scale-100"
             }`}
           >
             {/* Left Column - Single Text Container */}
-            <div className="mt-0 lg:mt-40 space-y-12">
+            <div className="mt-0 lg:mt-40 space-y-8">
               <div
                 className={`space-y-4 transition-all duration-700 delay-200 ${
-                  isVisible && !isTransitioning ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-10"
+                  isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
                 <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[3].title}</h2>
@@ -493,7 +375,7 @@ export function AboutSection() {
                     onClick={() => openModal(aboutContent[3].title, aboutContent[3].content)}
                     className="flex items-center mt-2 text-sm text-[#654625] hover:text-[#4a3319] font-medium transition-colors"
                   >
-                    Read More 
+                    Read More
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </button>
                 </div>
@@ -503,61 +385,21 @@ export function AboutSection() {
               </div>
             </div>
 
-            {/* Right Column - Stacked Images */}
-            <div className="relative md:pr-44 pr-0 mt-0 pt-36 pb-16 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
-              <div className="mx-auto relative w-72 md:w-96 h-[400px] md:h-[500px]">
+            {/* Right Column - Single Image */}
+           <div className="relative md:pr-44 pr-0 mt-0 pt-0 md:pt-24 pb-8 md:mt-20 md:pb-0 flex flex-col items-start justify-center">
+              <div className="mx-auto w-full md:w-96 h-[450px] md:h-[500px]">
                 <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-300 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-6deg] -translate-x-8 translate-y-0"
-                      : "opacity-0 rotate-[-15deg] translate-x-8 translate-y-8"
+                  className={`w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-1000 ${
+                    isVisible && !isTransitioning ? "opacity-100 scale-100" : "opacity-0 scale-95"
                   }`}
                 >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-                    <Image
-                      src="/aulona-about-why-2.webp"
-                      alt="Aulona in meditation"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-500 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[6deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[12deg] -translate-x-8 translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform translate-x-2 -translate-y-10 md:translate-x-40 -md:translate-y-16">
-                    <Image
-                      src="/aulona-about-why-3.webp"
-                      alt="Yoga studio"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 transition-all duration-1000 delay-700 ${
-                    isVisible && !isTransitioning
-                      ? "opacity-100 rotate-[-3deg] translate-x-0 translate-y-0"
-                      : "opacity-0 rotate-[-8deg] translate-x-4 -translate-y-8"
-                  }`}
-                >
-                  <div className="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden transform  translate-x-4 -translate-y-24 md:translate-x-12 -md:translate-y-32">
-                    <Image
-                      src="/aulona-about-why.webp"
-                      alt="Aulona practicing yoga"
-                      width={384}
-                      height={500}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <Image
+                    src="/aulona-about-why.webp"
+                    alt="Aulona practicing yoga"
+                    width={384}
+                    height={500}
+                    className="w-full h-full object-cover aspect-auto"
+                  />
                 </div>
               </div>
             </div>
@@ -576,15 +418,15 @@ export function AboutSection() {
           </Button>
 
           <div className="flex gap-2">
-            {[0, 1, 2, 3].map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentPage === page ? "bg-[#654625] scale-125" : "bg-gray-300 hover:bg-gray-400"
-                }`}
-              />
-            ))}
+             {[0, 1, 2, 3].map((page) => (
+               <button
+                 key={page}
+                 onClick={() => setCurrentPage(page)}
+                 className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                   currentPage === page ? "bg-[#654625] scale-125" : "bg-gray-300 hover:bg-gray-400"
+                 }`}
+               />
+             ))}
           </div>
 
           <Button

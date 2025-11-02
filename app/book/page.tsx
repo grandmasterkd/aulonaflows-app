@@ -70,7 +70,14 @@ export default function BookingOverviewPage() {
     if (error) {
       console.error("Error fetching events:", error)
     } else {
-      setEvents(data || [])
+      // Ensure image_url is a full URL
+      const eventsWithUrls = (data || []).map(event => {
+        if (event.image_url && !event.image_url.startsWith('http')) {
+          event.image_url = supabase.storage.from('uploads').getPublicUrl(event.image_url).data.publicUrl
+        }
+        return event
+      })
+      setEvents(eventsWithUrls)
     }
     setIsLoading(false)
   }

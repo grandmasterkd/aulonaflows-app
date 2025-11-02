@@ -21,7 +21,7 @@ export async function sendBookingConfirmationEmail({
 }: BookingConfirmationEmailProps) {
   try {
     const { data, error } = await resend.emails.send({
-      from: "Resto Refine Studios <hello@restorefine.com>",
+      from: "Aulona Flows <contact@aulonaflows.com>",
       to: [customerEmail],
       subject: `Booking Confirmed - ${eventName}`,
       html: `
@@ -78,8 +78,7 @@ export async function sendBookingConfirmationEmail({
               <div style="text-align: center; margin-top: 30px;">
                 <p style="margin: 5px 0; color: #666;">
                   <strong>Aulona Flows</strong><br>
-                  Email: info@aulonaflows.com<br>
-                  Phone: +44 123 456 7890
+                  Email: contact@aulonaflows.com<br>              
                 </p>
               </div>
               

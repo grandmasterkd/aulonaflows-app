@@ -6,6 +6,8 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
 
+
+
 const megafield = localFont({
   src: [
     {
@@ -30,9 +32,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Aulona Flows - Yoga Studio Glasgow",
+  title: "Aulona Flows",
   description:
-    "Begin your journey inward with Aulona Flows yoga studio in Glasgow. Offering yoga classes, sound therapy, wellness events, and corporate bookings.",
+    "Begin your journey inward with Aulona Flows. Offering yoga classes, sound therapy, wellness events, and corporate bookings.",
   generator: "aulonaflows.com",
   icons: {
     icon: "/favico.svg",

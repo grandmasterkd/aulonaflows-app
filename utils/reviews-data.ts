@@ -48,7 +48,7 @@ export const reviewsData = [
     id: 6,
     name: "Kelly",
     session: "Private Session",
-    location: "Glasgow",
+    location: "Portugal",
     review:
       "I was very fortunate to attend two of Aulonas yoga sessions recently at a wellness retreat in Portugal and absolutely loved the uniqueness and calmness of both sessions. Aulona has an amazing calming and nurturing energy and provides support throughout each session in assisted means to suit each individualperson.I came away from each session feeling both calm and like a weight had been lifted from my shoulders.I can't wait to attend Aulonas sessions at home very soon and would highly recommend for anyone looking for a yoga practice at any stage of their yoga journey. As a beginner myself I absolutely loved that it challenged me without feeling out of my depth.Beautiful sessions hosted by an amazingly beautiful soul.",
     image: "/defaultbg.svg",
@@ -64,10 +64,10 @@ export const reviewsData = [
   },
   {
     id: 8,
-    name: "Claire Bradley",
-    session: "Beginner Yoga",
-    location: "Glasgow",
-    review: "As a complete beginner, I felt welcomed and supported from day one.",
+    name: "Rachel",
+    session: "Yoga",
+    location: "Portugal",
+    review: "Practicing with Aulona during a wellness & yoga retreat in Portugal was such a beautiful experience. Her classes had the perfect balance of strength, softness & mindfulness. Her energy made everyone feel safe & supported. Aulona has a wonderful way of guiding you to connect more deeply with your body & breath I still think of her words when I step on the mat. I left feeling grounded, open & completely at peace. She’s truly a gifted teacher, & I’m so grateful to have practiced with her.",
     image: "/defaultbg.svg",
   },
 ]
