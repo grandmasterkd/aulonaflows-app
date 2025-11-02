@@ -1,11 +1,11 @@
 -- Insert sample events
 INSERT INTO public.events (name, category, description, date_time, location, capacity, price, instructor_name, image_url, status) VALUES
-('Morning Hatha Yoga', 'Yoga Classes', 'A gentle morning practice focusing on alignment and breath work', '2024-12-20 08:00:00+00', 'Studio A, Glasgow', 15, 25.00, 'Aulona', '/placeholder.svg?height=400&width=600', 'active'),
-('Sound Bath Meditation', 'Sound Therapy', 'Deep relaxation through healing sound frequencies', '2024-12-21 19:00:00+00', 'Studio B, Glasgow', 12, 35.00, 'Aulona', '/placeholder.svg?height=400&width=600', 'active'),
-('Vinyasa Flow', 'Yoga Classes', 'Dynamic flowing sequences linking breath and movement', '2024-12-22 10:00:00+00', 'Studio A, Glasgow', 20, 30.00, 'Aulona', '/placeholder.svg?height=400&width=600', 'active'),
-('Wellness Workshop: Mindful Living', 'Wellness Events', 'Learn practical techniques for incorporating mindfulness into daily life', '2024-12-23 14:00:00+00', 'Community Hall, Glasgow', 25, 45.00, 'Aulona', '/placeholder.svg?height=400&width=600', 'active'),
-('Corporate Yoga Session', 'Corporate & Private Bookings', 'Customized yoga session for workplace wellness', '2024-12-24 12:00:00+00', 'Client Office, Glasgow', 30, 80.00, 'Aulona', '/placeholder.svg?height=400&width=600', 'active'),
-('Evening Restorative Yoga', 'Yoga Classes', 'Gentle poses with props to promote deep relaxation', '2024-12-25 18:30:00+00', 'Studio A, Glasgow', 12, 28.00, 'Aulona', '/placeholder.svg?height=400&width=600', 'active');
+('Morning Hatha Yoga', 'Yoga Classes', 'A gentle morning practice focusing on alignment and breath work', '2024-12-20 08:00:00+00', 'Studio A, Glasgow', 15, 25.00, 'Aulona', '/aulona-bookings-placeholder.webp', 'active'),
+('Sound Bath Meditation', 'Sound Therapy', 'Deep relaxation through healing sound frequencies', '2024-12-21 19:00:00+00', 'Studio B, Glasgow', 12, 35.00, 'Aulona', '/aulona-bookings-placeholder.webp', 'active'),
+('Vinyasa Flow', 'Yoga Classes', 'Dynamic flowing sequences linking breath and movement', '2024-12-22 10:00:00+00', 'Studio A, Glasgow', 20, 30.00, 'Aulona', '/aulona-bookings-placeholder.webp', 'active'),
+('Wellness Workshop: Mindful Living', 'Wellness Events', 'Learn practical techniques for incorporating mindfulness into daily life', '2024-12-23 14:00:00+00', 'Community Hall, Glasgow', 25, 45.00, 'Aulona', '/aulona-bookings-placeholder.webp', 'active'),
+('Corporate Yoga Session', 'Corporate & Private Bookings', 'Customized yoga session for workplace wellness', '2024-12-24 12:00:00+00', 'Client Office, Glasgow', 30, 80.00, 'Aulona', '/aulona-bookings-placeholder.webp', 'active'),
+('Evening Restorative Yoga', 'Yoga Classes', 'Gentle poses with props to promote deep relaxation', '2024-12-25 18:30:00+00', 'Studio A, Glasgow', 12, 28.00, 'Aulona', '/aulona-bookings-placeholder.webp', 'active');
 
 -- Insert sample bookings
 INSERT INTO public.bookings (event_id, name, email, phone, notes, payment_status, booking_status, amount, payment_method) VALUES

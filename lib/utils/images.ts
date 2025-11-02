@@ -21,6 +21,12 @@ export function getImageUrl(path: string | null | undefined): string {
     return path
   }
 
+  // If it's a local path starting with /, treat it as a public asset
+  if (path.startsWith("/")) {
+    return path
+  }
+
+  // Otherwise, treat it as a Supabase storage path
   const fullUrl = `${STORAGE_BASE_URL}/${path}`
   return fullUrl
 }
