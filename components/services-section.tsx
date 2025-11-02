@@ -12,8 +12,8 @@ const services = [
   {
     title: "Yoga Classes",
     description:
-      "From gentle Hatha to dynamic Vinyasa flows, our classes cater to all levels and abilities. Experience the transformative power of mindful movement in a supportive, non-judgmental environment where every body is welcome.",
-    image: "/aulona-personal-13.webp",
+      "From grounding Hatha inspired flows to slow, mindful movement, my classes invite you to reconnect with your body and breath. Each session is designed to help you release tension, build gentle strength, and find stillness within. You’re encouraged to flow at your own pace, honouring what feels right for you in each moment. All levels are welcome.",
+    image: "/services-temp-2.webp",
   },
   {
     title: "Sound Therapy",

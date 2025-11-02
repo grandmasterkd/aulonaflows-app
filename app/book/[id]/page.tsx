@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
-import { ArrowLeft, AlertCircle } from "lucide-react"
+import { ArrowLeft, AlertCircle, X } from "lucide-react"
 import Image from "next/image"
 
 interface Event {
@@ -31,7 +31,9 @@ interface BookingForm {
   name: string
   email: string
   phone: string
-  special_requirements: string
+  has_health_conditions: boolean
+  health_conditions: string
+  agreed_to_terms: boolean
 }
 
 export default function BookEventPage() {
@@ -46,8 +48,11 @@ export default function BookEventPage() {
     name: "",
     email: "",
     phone: "",
-    special_requirements: "",
+    has_health_conditions: false,
+    health_conditions: "",
+    agreed_to_terms: false,
   })
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -85,7 +90,7 @@ export default function BookEventPage() {
     setIsLoading(false)
   }
 
-  const handleInputChange = (field: keyof BookingForm, value: string) => {
+  const handleInputChange = (field: keyof BookingForm, value: string | boolean) => {
     setBookingForm((prev) => ({
       ...prev,
       [field]: value,
@@ -96,6 +101,11 @@ export default function BookEventPage() {
     e.preventDefault()
     if (!event) return
 
+    if (!bookingForm.agreed_to_terms) {
+      setMessage({ type: "error", text: "Please agree to the Terms and Conditions before proceeding." })
+      return
+    }
+
     setIsSubmitting(true)
     setMessage(null)
 
@@ -104,7 +114,9 @@ export default function BookEventPage() {
         name: bookingForm.name,
         email: bookingForm.email,
         phone: bookingForm.phone,
-        notes: bookingForm.special_requirements || "",
+        has_health_conditions: bookingForm.has_health_conditions,
+        health_conditions: bookingForm.health_conditions || "",
+        agreed_to_terms: bookingForm.agreed_to_terms,
       }
 
       // Create Stripe payment session
@@ -170,32 +182,34 @@ export default function BookEventPage() {
   }
 
   return (
-    <main className="min-h-screen w-full grid place-items-center px-8 md:px-[21rem] py-12 md:py-0">
+    <main className="relative min-h-screen w-full grid place-items-center px-8 md:px-[16rem] lg:px-[21rem] py-12">
     
         {/* Back Button */}
         <div className="w-full" >
-        <Link href="/book" className="w-fit inline-flex text-left gap-2 text-[#654625] hover:text-[#4a3319] mb-6">
-          <ArrowLeft size={20} />
-          Back to Events
-        </Link>
+          <Link href="/book" className="w-fit inline-flex text-left gap-2 text-[#654625] hover:text-[#4a3319] mb-6">
+            <ArrowLeft size={20} />
+            Back to Events
+          </Link>
         </div>
-       
 
-        {message && (
-          <div
-            className={`mb-6 p-4 rounded-lg flex items-center gap-2 ${
-              message.type === "error"
-                ? "bg-red-50 text-red-700 border border-red-200"
-                : "bg-green-50 text-green-700 border border-green-200"
-            }`}
-          >
-            {message.type === "error" && <AlertCircle size={20} />}
-            <span>{message.text}</span>
-          </div>
-        )}
+        <div className="absolute mx-auto z-20 top-20">
+          {message && (
+            <div
+              className={`mb-6 p-4 rounded-lg flex items-center gap-2 w-fit ${
+               message.type === "error"
+               ? "bg-red-500/85 backdrop-blur-sm text-red-50 border border-red-200"
+               : "bg-green-500 text-green-50 border border-green-200"
+                }`}
+              >
+                    {message.type === "error" && <AlertCircle size={20} />}
+              <span className="whitespace-nowrap text-sm" >{message.text}</span>
+            </div>
+          )}
+        </div>
+        
 
-        <div className="w-full grid md:grid-cols-2 gap-8">
-          <div className="relative h-[400px] md:h-full bg-gray-200 rounded-3xl overflow-hidden">
+        <div className="w-full grid lg:grid-cols-2 gap-8">
+          <div className="relative h-[400px] lg:h-full bg-gray-200 rounded-3xl overflow-hidden">
             <Image
               src={event?.image_url || "/diverse-yoga-class.png"}
               alt={event.name}
@@ -239,7 +253,7 @@ export default function BookEventPage() {
             </div>
           </div>
     
-        <section className="w-full mt-8 md:mt-14 ">
+        <section className="w-full mt-10 ">
             {isFullyBooked() ? (
               <div className="text-center py-8">
                 <p className="text-lg text-gray-600 mb-4">This event is fully booked</p>
@@ -251,7 +265,7 @@ export default function BookEventPage() {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 md:grid-cols-2 items-start gap-6">
+              <form onSubmit={handleSubmit} className="w-full grid grid-cols-1 lg:grid-cols-2 items-start gap-6">
                 <div>
                   <Label className="w-full" htmlFor="name">Full Name</Label>
                   <Input
@@ -288,32 +302,116 @@ export default function BookEventPage() {
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="special_requirements">Special Requirements</Label>
-                  <Textarea
-                    id="special_requirements"
-                    value={bookingForm.special_requirements}
-                    onChange={(e) => handleInputChange("special_requirements", e.target.value)}
-                    placeholder="Any injuries, dietary requirements, or other notes..."
-                    className="bg-gray-200 h-14 border-none rounded-xl mt-1"
-                    rows={3}
-                  />
-                </div>
-                <div></div>
-                <div className="w-full flex justify-end">
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full md:w-fit px-8 h-14 bg-[#F7BA4C] font-medium rounded-xl"
-                  >
-                    {isSubmitting ? "Redirecting to Payment..." : `Proceed To Payment`}
-                  </Button>
-                </div>
+                 <div>
+                   <Label>Do you have any health conditions?</Label>
+                   <div className="flex gap-4 mt-1">
+                     <label className="flex items-center gap-2">
+                       <input
+                         type="radio"
+                         name="health_conditions"
+                         checked={!bookingForm.has_health_conditions}
+                         onChange={() => handleInputChange("has_health_conditions", false)}
+                         className="w-4 h-4"
+                       />
+                       No
+                     </label>
+                     <label className="flex items-center gap-2">
+                       <input
+                         type="radio"
+                         name="health_conditions"
+                         checked={bookingForm.has_health_conditions}
+                         onChange={() => handleInputChange("has_health_conditions", true)}
+                         className="w-4 h-4"
+                       />
+                       Yes
+                     </label>
+                   </div>
+                   {bookingForm.has_health_conditions && (
+                     <Textarea
+                       id="health_conditions"
+                       value={bookingForm.health_conditions}
+                       onChange={(e) => handleInputChange("health_conditions", e.target.value)}
+                       placeholder="Please describe your health conditions..."
+                       className="bg-gray-200 border-none rounded-xl mt-2"
+                       rows={3}
+                     />
+                   )}
+                 </div>
+             
+                 <div className="mt-4 w-full">
+                   <label className="flex items-center gap-2">
+                     <input
+                       type="checkbox"
+                       checked={bookingForm.agreed_to_terms}
+                       onChange={(e) => handleInputChange("agreed_to_terms", e.target.checked)}
+                       className="w-4 h-4"
+                     />
+                     <span className="text-sm">
+                       I have read and agree to the{" "}
+                       <button
+                         type="button"
+                         onClick={() => setIsTermsModalOpen(true)}
+                         className="text-[#654625] underline hover:text-[#4a3319]"
+                       >
+                         Terms and Conditions
+                       </button>
+                     </span>
+                   </label>
+                   
+                   <div className="mt-3" > 
+                    <Button
+                     type="submit"
+                     disabled={isSubmitting}
+                     className="w-full px-8 h-14 bg-[#F7BA4C] font-medium rounded-xl"
+                   >
+                     {isSubmitting ? "Redirecting to Payment..." : `Proceed To Payment`}
+                   </Button>
+                   </div>
+                 
+                  </div>
+
+                   
+              
               </form>
             )}
      
-        </section>
- 
-    </main>
-  )
+         </section>
+
+         {/* Terms and Conditions Modal */}
+         {isTermsModalOpen && (
+           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setIsTermsModalOpen(false)}>
+             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+             <div
+               onClick={(e) => e.stopPropagation()}
+               className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-hidden shadow-2xl transform transition-all duration-500 ease-out"
+             >
+               <div className="sticky top-0 bg-white px-6 py-5 flex items-center justify-between z-10">
+                 <h3 className="headline-text text-xl md:text-2xl font-semibold text-[#654625]">Terms and Conditions</h3>
+                 <button
+                   onClick={() => setIsTermsModalOpen(false)}
+                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                   aria-label="Close modal"
+                 >
+                   <X className="w-5 h-5 text-gray-600" />
+                 </button>
+               </div>
+               <div className="px-6 py-4 pb-8 overflow-y-auto max-h-[calc(85vh-80px)]">
+                 <div className="prose prose-sm md:prose-base max-w-none leading-relaxed space-y-4">
+                   <p>Before booking your class, please take a moment to read the terms below. This helps create a safe and supportive space for everyone.</p>
+                   <ul className="list-disc pl-5 space-y-2">
+                     <li>Classes can be rescheduled up to 24 hours before the start time. After this window, bookings cannot be changed or moved.</li>
+                     <li>No refunds will be issued once a booking is confirmed.</li>
+                     <li>Please listen to your body throughout the class everything offered is simply an invitation. Rest or modify whenever you need.</li>
+                     <li>If you have any injuries or medical conditions, please inform your teacher before class so suitable adjustments can be made.</li>
+                     <li>Classes are not suitable for pregnancy.</li>
+                     <li>By attending, you acknowledge that you are participating at your own risk and take full responsibility for your wellbeing during the session.</li>
+                     <li>Please take care of your personal belongings — the teacher and studio cannot be held responsible for any loss or damage.</li>
+                   </ul>
+                 </div>
+               </div>
+             </div>
+           </div>
+         )}
+     </main>
+   )
 }

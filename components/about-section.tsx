@@ -282,7 +282,7 @@ export function AboutSection() {
                   }`}
                 >
                   <Image
-                    src="/albania-flag.webp"
+                    src="/aulona-personal-5.webp"
                     alt="Albania Flag"
                     width={384}
                     height={500}

@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { reviewsData } from "@/utils/reviews-data"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import type React from "react"
 
 interface Review {
   id: number
@@ -59,9 +60,9 @@ function ReviewCard({
           </Button>
         </div>
 
-        <div className="mt-5 md:mt-0 text-xs paragraph-text text-white flex-shrink-0">
-          <p className="line-clamp-1">{review.session}</p>
-          <p className="line-clamp-1">{review.location}</p>
+        <div className="mt-5 md:mt-0  flex-shrink-0">
+         
+          <p className="text-base font-medium paragraph-text text-[#FFF0D8] line-clamp-1">{review.location}</p>
         </div>
       </div>
 
@@ -79,7 +80,7 @@ function ReviewCard({
               <div className="flex flex-col items-start" >
                 <DialogTitle className="headline-text text-xl font-semibold">{review.name}</DialogTitle>
                 <span className="text-sm text-gray-600 flex items-center gap-x-1">
-                 <p>{review.session}</p>  • <p>{review.location}</p>
+                 <p>{review.location}</p>
                 </span>
               </div>
             </div>
@@ -95,6 +96,18 @@ function ReviewCard({
 
 export function ReviewsSection() {
   const [isVisible, setIsVisible] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  // Group reviews into chunks of 7
+  const reviewsPerPage = 7
+  const totalPages = Math.ceil(reviewsData.length / reviewsPerPage)
+  const paginatedReviews = Array.from({ length: totalPages }, (_, pageIndex) =>
+    reviewsData.slice(pageIndex * reviewsPerPage, (pageIndex + 1) * reviewsPerPage)
+  )
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -112,42 +125,127 @@ export function ReviewsSection() {
     return () => observer.disconnect()
   }, [])
 
+  const nextPage = () => {
+    if (isTransitioning) return
+    setIsTransitioning(true)
+
+    setTimeout(() => {
+      setCurrentPage((prev) => (prev + 1) % totalPages)
+      setIsTransitioning(false)
+    }, 300)
+  }
+
+  const prevPage = () => {
+    if (isTransitioning) return
+    setIsTransitioning(true)
+
+    setTimeout(() => {
+      setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages)
+      setIsTransitioning(false)
+    }, 300)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isTransitioning) return
+    setTouchEnd(null)
+    setTouchStart(e.targetTouches[0].clientX)
+    setIsDragging(true)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (isTransitioning) return
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (isTransitioning || !touchStart || !touchEnd) {
+      setIsDragging(false)
+      return
+    }
+
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 30
+    const isRightSwipe = distance < -30
+
+    if (isLeftSwipe) {
+      nextPage()
+    } else if (isRightSwipe) {
+      prevPage()
+    }
+
+    setIsDragging(false)
+    setTouchStart(null)
+    setTouchEnd(null)
+  }
+
+  const currentReviews = paginatedReviews[currentPage] || []
+
   return (
-    <section id="reviews-section" className="py-20 px-8 md:px-24 lg:px-44 brand-bg-cream">
+    <section
+      id="reviews-section"
+      className="py-20 px-8 md:px-24 lg:px-44 brand-bg-cream"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="container mx-auto">
         <div className="text-center mb-16">
           <h2
             className={`headline-text text-3xl md:text-4xl lg:text-5xl font-bold transition-all duration-700 ease-out ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
+            } ${isTransitioning ? "opacity-0 translate-x-8 scale-95" : "opacity-100 translate-x-0 scale-100"}`}
             style={{ transitionDelay: "100ms" }}
           >
             What Our Clients Love
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-4 lg:h-[600px]">
-          {/* Row 1 - Desktop layout */}
-          <ReviewCard review={reviewsData[0]} className="lg:row-span-1" isVisible={isVisible} delay={200} />
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-4 lg:h-[600px] transition-all duration-500 ease-out transform ${
+            isDragging ? "scale-95" : "scale-100"
+          } ${isTransitioning ? "opacity-0 translate-x-8 scale-95" : "opacity-100 translate-x-0 scale-100"}`}
+        >
+          {/* Render reviews for current page */}
+          {currentReviews.map((review, index) => {
+            const delays = [200, 300, 400, 500, 600, 700, 800]
+            const layouts = [
+              "lg:row-span-1",
+              "sm:col-span-1 lg:col-span-2 lg:row-span-1",
+              "lg:row-span-1",
+              "lg:row-span-1",
+              "lg:row-span-1",
+              "lg:row-span-1",
+              "lg:row-span-1"
+            ]
 
-          <ReviewCard
-            review={reviewsData[1]}
-            className="sm:col-span-1 lg:col-span-2 lg:row-span-1"
-            isVisible={isVisible}
-            delay={300}
-          />
-
-          <ReviewCard review={reviewsData[2]} className="lg:row-span-1" isVisible={isVisible} delay={400} />
-
-          {/* Row 2 - Desktop layout */}
-          <ReviewCard review={reviewsData[3]} className="lg:row-span-1" isVisible={isVisible} delay={500} />
-
-          <ReviewCard review={reviewsData[4]} className="lg:row-span-1" isVisible={isVisible} delay={600} />
-
-          <ReviewCard review={reviewsData[5]} className="lg:row-span-1" isVisible={isVisible} delay={700} />
-
-          <ReviewCard review={reviewsData[6]} className="lg:row-span-1" isVisible={isVisible} delay={800} />
+            return (
+              <ReviewCard
+                key={`${currentPage}-${review.id}`}
+                review={review}
+                className={layouts[index] || "lg:row-span-1"}
+                isVisible={isVisible && !isTransitioning}
+                delay={delays[index] || 200}
+              />
+            )
+          })}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mt-8 md:mt-16">
+            <div className="flex gap-2">
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentPage(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+                    currentPage === index ? "bg-[#654625] scale-125" : "bg-gray-300 hover:bg-gray-400"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   )

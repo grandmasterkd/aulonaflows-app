@@ -45,7 +45,9 @@ export async function POST(request: NextRequest) {
           customerName: bookingData.name,
           customerEmail: bookingData.email,
           customerPhone: bookingData.phone,
-          notes: bookingData.notes || "",
+          has_health_conditions: bookingData.has_health_conditions ? "true" : "false",
+          health_conditions: bookingData.health_conditions || "",
+          agreed_to_terms: bookingData.agreed_to_terms ? "true" : "false",
         },
       })
 
@@ -55,7 +57,9 @@ export async function POST(request: NextRequest) {
         customer_name: bookingData.name,
         customer_email: bookingData.email,
         customer_phone: bookingData.phone,
-        notes: bookingData.notes || "",
+        has_health_conditions: bookingData.has_health_conditions,
+        health_conditions: bookingData.health_conditions || "",
+        agreed_to_terms: bookingData.agreed_to_terms,
         payment_status: "paid",
         payment_intent_id: paymentIntent.id,
       })
@@ -104,7 +108,9 @@ export async function POST(request: NextRequest) {
           customerName: bookingData.name,
           customerEmail: bookingData.email,
           customerPhone: bookingData.phone,
-          notes: bookingData.notes || "",
+          has_health_conditions: bookingData.has_health_conditions ? "true" : "false",
+          health_conditions: bookingData.health_conditions || "",
+          agreed_to_terms: bookingData.agreed_to_terms ? "true" : "false",
         },
       })
 
