@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { PhoneInput } from "@/components/PhoneInput"
 import Link from "next/link"
 import { ArrowLeft, AlertCircle, X } from "lucide-react"
 import Image from "next/image"
@@ -31,6 +32,7 @@ interface BookingForm {
   name: string
   email: string
   phone: string
+  phoneValid: boolean
   has_health_conditions: boolean
   health_conditions: string
   agreed_to_terms: boolean
@@ -48,6 +50,7 @@ export default function BookEventPage() {
     name: "",
     email: "",
     phone: "",
+    phoneValid: false,
     has_health_conditions: false,
     health_conditions: "",
     agreed_to_terms: false,
@@ -97,9 +100,22 @@ export default function BookEventPage() {
     }))
   }
 
+  const handlePhoneChange = (phone: string, phoneValid: boolean) => {
+    setBookingForm((prev) => ({
+      ...prev,
+      phone,
+      phoneValid,
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!event) return
+
+    if (!bookingForm.phoneValid) {
+      setMessage({ type: "error", text: "Please enter a valid phone number." })
+      return
+    }
 
     if (!bookingForm.agreed_to_terms) {
       setMessage({ type: "error", text: "Please agree to the Terms and Conditions before proceeding." })
@@ -292,13 +308,11 @@ export default function BookEventPage() {
 
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
+                  <PhoneInput
                     value={bookingForm.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    onChange={handlePhoneChange}
                     required
-                    className="bg-gray-200 h-14 border-none rounded-xl mt-1"
+                    className="mt-1"
                   />
                 </div>
 

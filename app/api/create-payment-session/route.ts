@@ -42,12 +42,7 @@ export async function POST(request: NextRequest) {
         },
         metadata: {
           eventId: eventId,
-          customerName: bookingData.name,
-          customerEmail: bookingData.email,
-          customerPhone: bookingData.phone,
-          has_health_conditions: bookingData.has_health_conditions ? "true" : "false",
-          health_conditions: bookingData.health_conditions || "",
-          agreed_to_terms: bookingData.agreed_to_terms ? "true" : "false",
+          notes: JSON.stringify(bookingData),
         },
       })
 
@@ -105,12 +100,7 @@ export async function POST(request: NextRequest) {
         cancel_url: `${request.nextUrl.origin}/book/${eventId}?canceled=true`,
         metadata: {
           eventId: eventId,
-          customerName: bookingData.name,
-          customerEmail: bookingData.email,
-          customerPhone: bookingData.phone,
-          has_health_conditions: bookingData.has_health_conditions ? "true" : "false",
-          health_conditions: bookingData.health_conditions || "",
-          agreed_to_terms: bookingData.agreed_to_terms ? "true" : "false",
+          notes: JSON.stringify(bookingData),
         },
       })
 
