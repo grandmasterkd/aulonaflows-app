@@ -9,7 +9,7 @@ import Markdown from "./ui/markdown"
 
 const aboutContent = [
   {
-    title: "Hello! I'm Aulona",
+    title: "Hello!\nI'm Aulona",
     content: `
 I’m a yoga teacher and sound therapist, but to me, it’s so much more than a title. 
 
@@ -198,7 +198,7 @@ export function AboutSection() {
                   isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
-                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[0].title}</h2>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold whitespace-pre-line leading-[2px]">{aboutContent[0].title}</h2>
                 <div className="md:hidden">
                   <div className="line-clamp-3">
                     <Markdown content={aboutContent[0].content} />
@@ -254,7 +254,7 @@ export function AboutSection() {
                   isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
-                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[1].title}</h2>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold whitespace-pre-line">{aboutContent[1].title}</h2>
                 <div className="md:hidden">
                   <div className="line-clamp-3">
                     <Markdown content={aboutContent[1].content} />
@@ -310,7 +310,7 @@ export function AboutSection() {
                   isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
-                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[2].title}</h2>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold whitespace-pre-line">{aboutContent[2].title}</h2>
                 <div className="md:hidden">
                   <div className="line-clamp-3">
                     <Markdown content={aboutContent[2].content} />
@@ -366,7 +366,7 @@ export function AboutSection() {
                   isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
-                <h2 className="headline-text text-2xl md:text-4xl font-semibold">{aboutContent[3].title}</h2>
+                <h2 className="headline-text text-2xl md:text-4xl font-semibold whitespace-pre-line">{aboutContent[3].title}</h2>
                 <div className="md:hidden">
                   <div className="line-clamp-3">
                     <Markdown content={aboutContent[3].content} />

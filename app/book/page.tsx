@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Search } from "lucide-react"
+import { ArrowLeft, Search, Package } from "lucide-react"
+import { BundleModal } from "@/components/bundle-modal"
 
 interface Event {
   id: string
@@ -21,20 +22,59 @@ interface Event {
   instructor_name: string
   image_url: string
   status: string
+  isInBundle?: boolean
+  bundleId?: string
+}
+
+interface Bundle {
+  id: string
+  name: string
+  description: string
+  discount_percentage: number
+  total_price: number
+  status: string
+  events: Event[]
 }
 
 export default function BookingOverviewPage() {
   const [events, setEvents] = useState<Event[]>([])
+  const [bundles, setBundles] = useState<Bundle[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [activeFilter, setActiveFilter] = useState("All Events")
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null)
+  const [isBundleModalOpen, setIsBundleModalOpen] = useState(false)
 
-  const filters = ["All Events", "Yoga Classes", "Sound Therapy", "Wellness Events", "Corporate & Private Bookings"]
+  const filters = ["All Events", "Yoga Classes", "Sound Therapy", "Wellness Events"]
 
   useEffect(() => {
     fetchEvents()
+    fetchBundles()
   }, [])
+
+  useEffect(() => {
+    if (events.length > 0 && bundles.length >= 0) {
+      // Mark events that are in bundles
+      const bundleEventIds = new Set<string>()
+      const eventToBundleMap = new Map<string, string>()
+
+      bundles.forEach(bundle => {
+        bundle.events.forEach(event => {
+          bundleEventIds.add(event.id)
+          eventToBundleMap.set(event.id, bundle.id)
+        })
+      })
+
+      const eventsWithBundleInfo = events.map(event => ({
+        ...event,
+        isInBundle: bundleEventIds.has(event.id),
+        bundleId: eventToBundleMap.get(event.id)
+      }))
+
+      setEvents(eventsWithBundleInfo)
+    }
+  }, [events.length, bundles])
 
   const filterEvents = useCallback(() => {
     let filtered = events
@@ -82,6 +122,29 @@ export default function BookingOverviewPage() {
     setIsLoading(false)
   }
 
+  const fetchBundles = async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from("event_bundles")
+      .select(`
+        *,
+        bundle_events (
+          events (*)
+        )
+      `)
+      .eq("status", "active")
+
+    if (error) {
+      console.error("Error fetching bundles:", error)
+    } else {
+      const formattedBundles = (data || []).map(bundle => ({
+        ...bundle,
+        events: bundle.bundle_events?.map((be: any) => be.events) || []
+      }))
+      setBundles(formattedBundles)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
       weekday: "long",
@@ -95,6 +158,16 @@ export default function BookingOverviewPage() {
 
   const isFullyBooked = (event: Event) => {
     return event.current_bookings >= event.capacity
+  }
+
+  const handleEventClick = (event: Event) => {
+    if (event.isInBundle && event.bundleId) {
+      const bundle = bundles.find(b => b.id === event.bundleId)
+      if (bundle) {
+        setSelectedBundle(bundle)
+        setIsBundleModalOpen(true)
+      }
+    }
   }
 
   if (isLoading) {
@@ -165,28 +238,43 @@ export default function BookingOverviewPage() {
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-0 md:pb-12">
             {filteredEvents.map((event) => (
-              <div key={event.id} className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow">
+              <div
+                key={event.id}
+                className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow"
+                onClick={() => event.isInBundle ? handleEventClick(event) : null}
+              >
                 <div
                   className="h-80 bg-cover relative"
-                 
+
                 >
                   <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >
                     <h3 className="text-xl text-white font-medium">{event.name}</h3>
-                    
+
                     <p className="text-xs text-gray-200">
                        {formatDate(event.date_time)}
                     </p>
                     </div>
-                 
 
-                    <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
+                    {event.isInBundle ? (
+                      <button className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl">
+                        View Bundle
+                      </button>
+                    ) : (
+                      <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
+                    )}
                   </div>
                   {isFullyBooked(event) && (
                     <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                       Fully Booked
+                    </div>
+                  )}
+                  {event.isInBundle && (
+                    <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                      <Package className="w-3 h-3" />
+                      Bundle
                     </div>
                   )}
                 </div>
@@ -237,6 +325,12 @@ export default function BookingOverviewPage() {
           )}
         </div>
       </section>
+
+      <BundleModal
+        isOpen={isBundleModalOpen}
+        onClose={() => setIsBundleModalOpen(false)}
+        bundle={selectedBundle}
+      />
     </div>
   )
 }

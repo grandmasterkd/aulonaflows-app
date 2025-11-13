@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Settings,
   Camera,
+  Package,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -28,6 +29,7 @@ const sidebarItems = [
   { title: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { title: "Bookings", href: "/admin/bookings", icon: Calendar },
   { title: "Events", href: "/admin/events", icon: CalendarDays },
+  { title: "Event Bundles", href: "/admin/events/bundles", icon: Package },
   { title: "Clients", href: "/admin/clients", icon: Users },
   { title: "Payments", href: "/admin/payments", icon: CreditCard },
 ]

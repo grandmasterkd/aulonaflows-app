@@ -194,18 +194,18 @@ export function ServicesSection() {
                  </p>
                </div>
 
-              <Link href="/book" className="flex items-center gap-x-1.5 group w-fit">
-                <div className="w-fit rounded-full p-1.5 h-auto bg-transparent border-2 border-[#FDC7AA] transition-all duration-300 group-hover:border-[#FFB366] group-hover:shadow-lg">
-                  <Button
-                    className="border border-[#FFBE5D] rounded-3xl px-4 md:px-6 py-5 text-xs font-medium transition-all duration-300 flex items-center gap-2 hover:shadow-md transform group-hover:scale-105"
-                    style={{
-                      background: "linear-gradient(90deg, #FFE3E1 0%, #FFD3B3 53%, #FFDDB9 100%)",
-                      color: "#654625",
-                    }}
-                  >
-                    BOOK A CLASS
-                  </Button>
-                </div>
+               <Link href={currentService === 3 ? "/enquiry" : "/book"} className="flex items-center gap-x-1.5 group w-fit">
+                 <div className="w-fit rounded-full p-1.5 h-auto bg-transparent border-2 border-[#FDC7AA] transition-all duration-300 group-hover:border-[#FFB366] group-hover:shadow-lg">
+                   <Button
+                     className="border border-[#FFBE5D] rounded-3xl px-4 md:px-6 py-5 text-xs font-medium transition-all duration-300 flex items-center gap-2 hover:shadow-md transform group-hover:scale-105"
+                     style={{
+                       background: "linear-gradient(90deg, #FFE3E1 0%, #FFD3B3 53%, #FFDDB9 100%)",
+                       color: "#654625",
+                     }}
+                   >
+                     {currentService === 3 ? "MAKE AN ENQUIRY" : "BOOK A CLASS"}
+                   </Button>
+                 </div>
                 <div className="bg-[#FFDDB9] h-12 w-12 md:h-14 md:w-14 p-2 rounded-xl md:rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:bg-[#FFB366] group-hover:shadow-lg transform group-hover:scale-105 group-hover:rotate-3">
                   <ChevronRight className="text-[#A56024] size-7 transition-transform duration-300 group-hover:translate-x-0.5" />
                 </div>
