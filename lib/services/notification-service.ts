@@ -28,7 +28,7 @@ export class NotificationService {
 
   constructor() {
     this.supabase = createClientClient()
-    this.resend = new Resend(process?.env?.RESEND_API_KEY || 're_4vMumaGC_5obdnaEnepRAkb9QzF5ZfckC')
+    this.resend = new Resend(process?.env?.RESEND_API_KEY )
   }
 
   /**
