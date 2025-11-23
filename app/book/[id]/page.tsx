@@ -13,6 +13,7 @@ import { PhoneInput } from "@/components/PhoneInput"
 import Link from "next/link"
 import { ArrowLeft, AlertCircle, X } from "lucide-react"
 import Image from "next/image"
+import type { User } from "@supabase/supabase-js"
 
 interface Event {
   id: string
@@ -43,6 +44,7 @@ export default function BookEventPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [event, setEvent] = useState<Event | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -57,15 +59,20 @@ export default function BookEventPage() {
   })
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
 
+  // Check authentication on mount
   useEffect(() => {
-    if (params.id) {
+    checkAuthentication()
+  }, [])
+
+  useEffect(() => {
+    if (params.id && user) {
       fetchEvent(params.id as string)
     }
 
     if (searchParams.get("canceled") === "true") {
       setMessage({ type: "error", text: "Payment was cancelled. Please try again." })
     }
-  }, [params.id, searchParams])
+  }, [params.id, searchParams, user])
 
   useEffect(() => {
     if (message) {
@@ -75,6 +82,41 @@ export default function BookEventPage() {
       return () => clearTimeout(timer)
     }
   }, [message])
+
+  const checkAuthentication = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      // Redirect to signup with return URL
+      const returnUrl = encodeURIComponent(`/book/${params.id}`)
+      router.push(`/auth/register?returnUrl=${returnUrl}`)
+      return
+    }
+
+    setUser(user)
+
+    // Optionally pre-fill form with user data
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, email, phone')
+      .eq('id', user.id)
+      .single()
+
+    if (profile) {
+      setBookingForm(prev => ({
+        ...prev,
+        name: `${profile.first_name} ${profile.last_name}`,
+        email: profile.email || user.email || "",
+        phone: profile.phone || "",
+      }))
+    } else {
+      setBookingForm(prev => ({
+        ...prev,
+        email: user.email || "",
+      }))
+    }
+  }
 
   const fetchEvent = async (eventId: string) => {
     const supabase = createClient()
@@ -127,6 +169,7 @@ export default function BookEventPage() {
 
     try {
       const bookingData = {
+        user_id: user?.id,
         name: bookingForm.name,
         email: bookingForm.email,
         phone: bookingForm.phone,

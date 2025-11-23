@@ -1,30 +1,37 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
 import { Eye, EyeOff, X, Menu } from "lucide-react"
 import Image from "next/image"
 import { authService } from "@/lib/services/auth-service"
 
-export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
+export default function ResetPasswordPage() {
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const returnUrl = searchParams.get('returnUrl')
+
+  useEffect(() => {
+    // Check if user is authenticated (from reset link)
+    const checkAuth = async () => {
+      const session = await authService.getSession()
+      if (!session) {
+        setError("Invalid or expired reset link")
+      }
+    }
+    checkAuth()
+  }, [])
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -39,18 +46,28 @@ export default function LoginPage() {
     setIsLoading(true)
     setError("")
 
-    try {
-      const result = await authService.signIn(formData.email, formData.password)
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
 
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters long")
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const result = await authService.updatePassword(newPassword)
       if (result.success) {
-        // Redirect to return URL if provided, otherwise to account dashboard
-        if (returnUrl) {
-          router.push(returnUrl)
-        } else {
-          router.push("/account/dashboard")
-        }
+        setSuccess(true)
+        // Redirect to login after a delay
+        setTimeout(() => {
+          router.push("/auth/login")
+        }, 2000)
       } else {
-        setError(result.error || "Login failed")
+        setError(result.error || "Failed to update password")
       }
     } catch (error) {
       setError("An unexpected error occurred")
@@ -58,8 +75,6 @@ export default function LoginPage() {
       setIsLoading(false)
     }
   }
-
-
 
   return (
     <section className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat flex items-end">
@@ -153,8 +168,8 @@ export default function LoginPage() {
               height={50}
               className="mx-auto mb-2"
             />
-            <CardTitle className="text-white text-center text-2xl font-medium" >Welcome Back</CardTitle>
-            <p className="text-white/70 text-sm text-center" >Sign In to get easy access to all your bookings and exclusive AlounaFlows deals.</p>
+            <CardTitle className="text-white text-center text-2xl font-medium" >Reset Password</CardTitle>
+            <p className="text-white/70 text-sm text-center" >Enter your new password below.</p>
           </CardHeader>
           <CardContent>
             {error && (
@@ -162,75 +177,73 @@ export default function LoginPage() {
                 <p className="text-red-800">{error}</p>
               </div>
             )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="email" className="text-white mb-1" ></Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
-                  placeholder="Enter your email"
-                />
+            {success && (
+              <div className="mb-4 p-4 border border-green-200 bg-green-50 rounded-lg">
+                <p className="text-green-800">Password updated successfully! Redirecting to login...</p>
               </div>
+            )}
 
-              <div>
-                <Label htmlFor="password"></Label>
-                <div className="relative mt-1">
+            {!success && (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="newPassword" className="text-white mb-1" ></Label>
+                  <div className="relative mt-1">
+                    <Input
+                      id="newPassword"
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
+                      placeholder="New password"
+                      minLength={8}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="confirmPassword" className="text-white mb-1" ></Label>
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
-                    placeholder="Enter your password"
+                    placeholder="Confirm new password"
+                    minLength={8}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-white/70 hover:text-white font-medium"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-[#E3C9A3] hover:bg-[#a48a6c] text-white h-14 rounded-xl"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
+                <Button
+                  type="submit"
+                  className="w-full bg-[#E3C9A3] hover:bg-[#a48a6c] text-white h-14 rounded-xl"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Updating..." : "Update Password"}
+                </Button>
+              </form>
+            )}
 
             <div className="mt-6 text-center">
               <p className="text-white/50 text-sm">
-                Don't have an account?{" "}
+                Remember your password?{" "}
                 <Link
-                  href={returnUrl ? `/auth/register?returnUrl=${encodeURIComponent(returnUrl)}` : "/auth/register"}
+                  href="/auth/login"
                   className="text-[#E3C9A3] hover:bg-[#a48a6c] font-medium"
                 >
-                  Sign up
+                  Sign in
                 </Link>
               </p>
             </div>

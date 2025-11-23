@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, Calendar, MapPin, User, Phone } from "lucide-react"
 import { calculateBundlePrice } from "@/lib/utils/bundles"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface Event {
   id: string
@@ -36,12 +37,14 @@ interface Bundle {
 
 export default function BundleBookingPage() {
   const params = useParams()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const bundleId = params.id as string
   const eventIds = searchParams.get('events')?.split(',') || []
 
   const [bundle, setBundle] = useState<Bundle | null>(null)
   const [selectedEvents, setSelectedEvents] = useState<Event[]>([])
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -53,9 +56,51 @@ export default function BundleBookingPage() {
     notes: "",
   })
 
+  // Check authentication on mount
   useEffect(() => {
-    fetchBundle()
-  }, [bundleId])
+    checkAuthentication()
+  }, [])
+
+  useEffect(() => {
+    if (user) {
+      fetchBundle()
+    }
+  }, [bundleId, user])
+
+  const checkAuthentication = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      // Redirect to signup with return URL
+      const returnUrl = encodeURIComponent(`/book/bundle/${bundleId}?events=${eventIds.join(',')}`)
+      router.push(`/auth/register?returnUrl=${returnUrl}`)
+      return
+    }
+
+    setUser(user)
+
+    // Pre-fill form with user data
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, email, phone')
+      .eq('id', user.id)
+      .single()
+
+    if (profile) {
+      setFormData({
+        name: `${profile.first_name} ${profile.last_name}`,
+        email: profile.email || user.email || "",
+        phone: profile.phone || "",
+        notes: "",
+      })
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        email: user.email || "",
+      }))
+    }
+  }
 
   const fetchBundle = async () => {
     const supabase = createClient()
@@ -108,6 +153,7 @@ export default function BundleBookingPage() {
       const { error: bookingError } = await supabase
         .from("bookings")
         .insert([{
+          user_id: user?.id,
           name: formData.name,
           email: formData.email,
           phone: formData.phone,

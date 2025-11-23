@@ -4,7 +4,7 @@
  */
 
 import { createClient as createClientClient } from '@/lib/supabase/client'
-import type { User, Session } from '@supabase/supabase-js'
+import type { Session } from '@supabase/supabase-js'
 
 export interface UserProfile {
   id: string
@@ -43,9 +43,7 @@ export interface AuthResult {
 export interface RegistrationData {
   email: string
   password: string
-  first_name: string
-  last_name: string
-  phone?: string
+  full_name: string
   date_of_birth?: string
   marketing_consent?: boolean
 }
@@ -67,9 +65,7 @@ export class AuthService {
         password: data.password,
         options: {
           data: {
-            first_name: data.first_name,
-            last_name: data.last_name,
-            phone: data.phone,
+            full_name: data.full_name,
             date_of_birth: data.date_of_birth,
           }
         }
@@ -89,13 +85,13 @@ export class AuthService {
         .insert({
           id: authData.user.id,
           email: data.email,
-          first_name: data.first_name,
-          last_name: data.last_name,
-          phone: data.phone,
+          first_name: data.full_name,
+          last_name: '',
           date_of_birth: data.date_of_birth,
           marketing_consent: data.marketing_consent || false,
           email_verified: false,
           phone_verified: false,
+          role: 'user',
         })
 
       if (profileError) {
@@ -132,7 +128,7 @@ export class AuthService {
   }
 
   /**
-   * Sign in user
+   * Sign in user with email/password
    */
   async signIn(email: string, password: string): Promise<AuthResult> {
     try {
@@ -165,6 +161,110 @@ export class AuthService {
       }
     } catch (error) {
       console.error('Sign in error:', error)
+      return { success: false, error: 'An unexpected error occurred' }
+    }
+  }
+
+  /**
+   * Sign in with OAuth provider
+   */
+  async signInWithOAuth(provider: 'google' | 'apple' | 'microsoft'): Promise<{ success: boolean; url?: string; error?: string }> {
+    try {
+      const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      })
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      return { success: true, url: data.url }
+    } catch (error) {
+      console.error('OAuth sign in error:', error)
+      return { success: false, error: 'An unexpected error occurred' }
+    }
+  }
+
+  /**
+   * Handle OAuth callback
+   */
+  async handleOAuthCallback(): Promise<AuthResult> {
+    try {
+      const { data, error } = await this.supabase.auth.getSession()
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      if (!data.session?.user) {
+        return { success: false, error: 'No session found' }
+      }
+
+      const user = data.session.user
+
+      // Check if user profile exists, create if not
+      let userProfile = await this.getUserProfile(user.id)
+
+      if (!userProfile) {
+        // Create profile for OAuth user
+        const { error: profileError } = await this.supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            first_name: user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || '',
+            last_name: user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+            email_verified: user.email_confirmed_at ? true : false,
+            account_status: 'active',
+          })
+
+        if (profileError) {
+          console.error('OAuth profile creation error:', profileError)
+          return { success: false, error: 'Failed to create user profile' }
+        }
+
+        // Create default preferences
+        const { error: prefsError } = await this.supabase
+          .from('user_preferences')
+          .insert({
+            user_id: user.id,
+            notification_email: true,
+            notification_sms: false,
+            notification_marketing: false,
+          })
+
+        if (prefsError) {
+          console.error('OAuth preferences creation error:', prefsError)
+        }
+
+        userProfile = await this.getUserProfile(user.id)
+      }
+
+      // Check account status
+      if (userProfile?.account_status !== 'active') {
+        await this.supabase.auth.signOut()
+        return {
+          success: false,
+          error: userProfile?.account_status === 'suspended'
+            ? 'Your account has been suspended. Please contact support.'
+            : 'Your account is inactive. Please contact support.'
+        }
+      }
+
+      return {
+        success: true,
+        user: userProfile,
+        session: data.session
+      }
+    } catch (error) {
+      console.error('OAuth callback error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }

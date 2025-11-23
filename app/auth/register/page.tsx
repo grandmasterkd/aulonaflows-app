@@ -7,40 +7,44 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-
+import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, X, Menu } from "lucide-react"
 import Image from "next/image"
 import { authService } from "@/lib/services/auth-service"
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [formData, setFormData] = useState({
+    fullName: "",
     email: "",
     password: "",
+    marketingConsent: false,
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('returnUrl')
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-      setIsMobileMenuOpen(false)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError("")
 
+    // Validation
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long")
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const result = await authService.signIn(formData.email, formData.password)
+      const result = await authService.register({
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.fullName,
+        marketing_consent: formData.marketingConsent,
+      })
 
       if (result.success) {
         // Redirect to return URL if provided, otherwise to account dashboard
@@ -50,12 +54,22 @@ export default function LoginPage() {
           router.push("/account/dashboard")
         }
       } else {
-        setError(result.error || "Login failed")
+        setError(result.error || "Registration failed")
       }
     } catch (error) {
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" })
+      setIsMobileMenuOpen(false)
     }
   }
 
@@ -101,60 +115,31 @@ export default function LoginPage() {
           isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
-        <nav className="flex flex-col items-center justify-center h-full gap-8 p-8">
-          <button
-            onClick={() => scrollToSection("about")}
-            className="text-white text-xl font-medium hover:text-[#FFDDB9] transition-colors duration-300"
-          >
-            About Aulona
-          </button>
-          <button
-            onClick={() => scrollToSection("services")}
-            className="text-white text-xl font-medium hover:text-[#FFDDB9] transition-colors duration-300"
-          >
-            Aulona's Services
-          </button>
-          <button
-            onClick={() => scrollToSection("clients")}
-            className="text-white text-xl font-medium hover:text-[#FFDDB9] transition-colors duration-300"
-          >
-            Aulona's Clients
-          </button>
-          <button
-            onClick={() => scrollToSection("faq")}
-            className="text-white text-xl font-medium hover:text-[#FFDDB9] transition-colors duration-300"
-          >
-            Frequently Asked Questions
-          </button>
-          <Link
-            href="/book"
-            className="bg-white backdrop-blur-sm w-fit h-auto p-4 px-6 rounded-full text-lg font-medium hover:text-[#FFDDB9] transition-colors duration-300"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Book A Class
-          </Link>
-          <Link
-            href="/enquiry"
-            className="text-white text-xl font-medium hover:text-[#FFDDB9] transition-colors duration-300"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            Make an enquiry
-          </Link>
-        </nav>
-      </div>
+          <Image
+            src="/aulonaflows-logo-dark.svg"
+            alt="AulonaFlows"
+            width={60}
+            height={60}
+            className="mx-auto mb-4"
+          />
+          <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
+          <p className="mt-2 text-gray-600">Join AulonaFlows and start your wellness journey</p>
+        </div>
 
-      <div className="grid place-items-center h-screen w-full relative z-50">
+        <div className="grid place-items-center h-screen w-full relative z-50" >
+
+
         <Card className="bg-transparent/50 backdrop-blur-sm border border-white/15 py-8 md:px-3 px-1 rounded-2xl h-auto w-[90%] md:w-[30%]" >
           <CardHeader>
             <Image
-              src="/aulonaflows-logo-white.svg"
-              alt="AulonaFlows"
-              width={50}
-              height={50}
-              className="mx-auto mb-2"
-            />
-            <CardTitle className="text-white text-center text-2xl font-medium" >Welcome Back</CardTitle>
-            <p className="text-white/70 text-sm text-center" >Sign In to get easy access to all your bookings and exclusive AlounaFlows deals.</p>
+            src="/aulonaflows-logo-white.svg"
+            alt="AulonaFlows"
+            width={50}
+            height={50}
+            className="mx-auto mb-2"
+          />
+            <CardTitle className="text-white text-center text-2xl font-medium" >Create Your Account</CardTitle>
+            <p className="text-white/70 text-sm text-center" >Sign Up to get easy access to all your bookings and exclusive AlounaFlows deals.</p>
           </CardHeader>
           <CardContent>
             {error && (
@@ -165,14 +150,26 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="email" className="text-white mb-1" ></Label>
+                <Label htmlFor="fullName" className="text-white mb-1" ></Label>
+                <Input
+                  id="fullName"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  required
+                  className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
+                  placeholder="Enter your name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email"></Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
+                  className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm" 
                   placeholder="Enter your email"
                 />
               </div>
@@ -186,7 +183,8 @@ export default function LoginPage() {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
-                    className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
+                    className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm" 
+                    minLength={8}
                     placeholder="Enter your password"
                   />
                   <button
@@ -203,15 +201,21 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-white/70 hover:text-white font-medium"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                className="text-white/50"
+                  id="marketingConsent"
+                  checked={formData.marketingConsent}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, marketingConsent: checked as boolean })
+                  }
+                />
+                <label
+                  htmlFor="marketingConsent"
+                  className="text-sm text-white/50 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  I agree to receive marketing communications and updates about AulonaFlows services.
+                </label>
               </div>
 
               <Button
@@ -219,24 +223,24 @@ export default function LoginPage() {
                 className="w-full bg-[#E3C9A3] hover:bg-[#a48a6c] text-white h-14 rounded-xl"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <p className="text-white/50 text-sm">
-                Don't have an account?{" "}
+                Already have an account?{" "}
                 <Link
-                  href={returnUrl ? `/auth/register?returnUrl=${encodeURIComponent(returnUrl)}` : "/auth/register"}
+                  href={returnUrl ? `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}` : "/auth/login"}
                   className="text-[#E3C9A3] hover:bg-[#a48a6c] font-medium"
                 >
-                  Sign up
+                  Sign in
                 </Link>
               </p>
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
     </section>
   )
 }

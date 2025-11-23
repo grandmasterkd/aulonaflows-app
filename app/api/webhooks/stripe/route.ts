@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       const customerName = bookingData.name || session.customer_details?.name || "Unknown"
       const customerPhone = bookingData.phone || ""
       const specialRequirements = bookingData.notes || ""
+      const userId = bookingData.user_id || null
 
       console.log("[v0] Customer data:", { customerEmail, customerName, customerPhone })
 
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
       const { data: booking, error: bookingError } = await supabase
         .from("bookings")
         .insert({
-          user_id: null,
+          user_id: userId,
           class_id: eventId,
           booking_date: new Date().toISOString(),
           notes: JSON.stringify(notesObject),

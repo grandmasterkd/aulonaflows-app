@@ -25,7 +25,7 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data ->> 'first_name', SPLIT_PART(NEW.email, '@', 1)),
     COALESCE(NEW.raw_user_meta_data ->> 'last_name', ''),
     NEW.email,
-    'admin',
+    'user',
     NULL
   )
   ON CONFLICT (id) DO NOTHING;

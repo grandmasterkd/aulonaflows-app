@@ -21,6 +21,7 @@ import {
   Settings,
   Camera,
   Package,
+  Shield,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -32,6 +33,7 @@ const sidebarItems = [
   { title: "Event Bundles", href: "/admin/events/bundles", icon: Package },
   { title: "Clients", href: "/admin/clients", icon: Users },
   { title: "Payments", href: "/admin/payments", icon: CreditCard },
+  { title: "Users", href: "/admin/users", icon: Shield },
 ]
 
 export function AdminSidebar() {
@@ -281,7 +283,7 @@ function SettingsModal({
         const fileName = `${user.id}-${Date.now()}.${fileExt}`
         const filePath = `profiles/${fileName}`
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("uploads")
           .upload(filePath, imageFile)
 

@@ -23,12 +23,15 @@ export default async function AdminDashboardPage({ searchParams }: DashboardPage
     redirect("/admin/login")
   }
 
+  if (profile.role !== 'admin') {
+    redirect("/account/dashboard")
+  }
+
   // Get filter parameters from URL
   const selectedYear = parseInt((searchParams.year as string) || new Date().getFullYear().toString())
   const selectedMonth = parseInt((searchParams.month as string) || new Date().getMonth().toString())
 
   const currentYear = new Date().getFullYear()
-  const currentMonth = new Date().getMonth()
   const selectedMonthStart = new Date(selectedYear, selectedMonth, 1).toISOString()
   const selectedMonthEnd = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString()
   const selectedYearStart = `${selectedYear}-01-01`

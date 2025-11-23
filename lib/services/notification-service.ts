@@ -4,6 +4,7 @@
  */
 
 import { createClient as createClientClient } from '@/lib/supabase/client'
+import { Resend } from 'resend'
 
 export interface NotificationData {
   userId: string
@@ -23,9 +24,11 @@ export interface EmailTemplate {
 
 export class NotificationService {
   private supabase: any
+  private resend: any
 
   constructor() {
     this.supabase = createClientClient()
+    this.resend = new Resend(process?.env?.RESEND_API_KEY || 're_4vMumaGC_5obdnaEnepRAkb9QzF5ZfckC')
   }
 
   /**
@@ -456,9 +459,19 @@ AulonaFlows Team
 
       for (const notification of notifications) {
         try {
-          // Here you would integrate with your email service (SendGrid, Resend, etc.)
-          // For now, we'll just mark as sent
-          console.log(`Sending ${notification.notification_type} email to ${notification.email}: ${notification.subject}`)
+          // Send email using Resend
+          const { data: emailData, error: emailError } = await this.resend.emails.send({
+            from: "Aulona Flows <contact@aulonaflows.com>",
+            to: [notification.email],
+            subject: notification.subject,
+            html: notification.content,
+          })
+
+          if (emailError) {
+            throw new Error(`Email sending failed: ${emailError.message}`)
+          }
+
+          console.log(`Sent ${notification.notification_type} email to ${notification.email}: ${notification.subject}`)
 
           await this.supabase
             .from('notification_queue')
