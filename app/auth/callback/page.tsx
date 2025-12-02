@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { authService } from "@/lib/services/auth-service"
+import { createClient } from "@/lib/supabase/client"
 import Image from "next/image"
 import { CheckCircle, XCircle } from "lucide-react"
 
@@ -19,14 +20,58 @@ export default function AuthCallbackPage() {
 
   const handleAuthCallback = async () => {
     try {
-      const result = await authService.handleOAuthCallback()
+      console.log('Auth callback started, URL params:', Object.fromEntries(searchParams.entries()))
 
-      if (result.success) {
+      // Check for error parameters in URL
+      const error = searchParams.get('error')
+      const errorCode = searchParams.get('error_code')
+      const errorDescription = searchParams.get('error_description')
+
+      if (error) {
+        console.error('Auth callback error:', { error, errorCode, errorDescription })
+        setStatus('error')
+        setMessage(`Authentication failed: ${errorDescription || error}`)
+        setTimeout(() => {
+          router.push('/auth/login')
+        }, 3000)
+        return
+      }
+
+      // Check for tokens in URL (for manual session establishment)
+      const accessToken = searchParams.get('access_token')
+      const refreshToken = searchParams.get('refresh_token')
+
+      if (accessToken && refreshToken) {
+        // Manually set the session
+        const supabase = createClient()
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        })
+
+        if (sessionError) {
+          console.error('Session establishment error:', sessionError)
+          setStatus('error')
+          setMessage('Failed to establish session')
+          setTimeout(() => {
+            router.push('/auth/login')
+          }, 5000)
+          return
+        }
+      }
+
+      // Handle the callback
+      const result = await authService.handleMagicLinkCallback()
+
+      if (result.success && result.user) {
         setStatus('success')
         setMessage('Successfully signed in! Redirecting...')
+
         setTimeout(() => {
-          // Redirect to return URL if provided, otherwise to account dashboard
-          if (returnUrl) {
+          // Redirect based on user role
+          if (result.user!.role === 'admin') {
+            router.push('/admin/dashboard')
+          } else if (returnUrl) {
             router.push(returnUrl)
           } else {
             router.push('/account/dashboard')
@@ -40,6 +85,7 @@ export default function AuthCallbackPage() {
         }, 3000)
       }
     } catch (error) {
+      console.error('Callback error:', error)
       setStatus('error')
       setMessage('An unexpected error occurred')
       setTimeout(() => {

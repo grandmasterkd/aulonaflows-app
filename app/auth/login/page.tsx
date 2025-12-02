@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -8,23 +8,40 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-import { Eye, EyeOff, X, Menu } from "lucide-react"
+import { X, Menu } from "lucide-react"
 import Image from "next/image"
 import { authService } from "@/lib/services/auth-service"
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
-  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [pendingRegistration, setPendingRegistration] = useState<{ firstName: string; lastName: string; email: string } | null>(null)
 
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('returnUrl')
+  const message = searchParams.get('message')
+
+  useEffect(() => {
+    if (message) {
+      setSuccess(message)
+    }
+
+    // Load pending registration data
+    const stored = localStorage.getItem('pendingRegistration')
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        setPendingRegistration(data)
+        setEmail(data.email) // Pre-fill email
+      } catch (error) {
+        console.error('Error parsing pending registration:', error)
+      }
+    }
+  }, [message])
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId)
@@ -38,19 +55,24 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
+    setSuccess("")
 
     try {
-      const result = await authService.signIn(formData.email, formData.password)
+      // Use pending registration data if available
+      const userData = pendingRegistration ? {
+        first_name: pendingRegistration.firstName,
+        last_name: pendingRegistration.lastName
+      } : undefined
+
+      const result = await authService.sendMagicLink(email, 'user', userData)
 
       if (result.success) {
-        // Redirect to return URL if provided, otherwise to account dashboard
-        if (returnUrl) {
-          router.push(returnUrl)
-        } else {
-          router.push("/account/dashboard")
-        }
+        setSuccess("Magic link sent! Check your email to sign in.")
+        // Clear pending registration data after successful send
+        localStorage.removeItem('pendingRegistration')
+        setPendingRegistration(null)
       } else {
-        setError(result.error || "Login failed")
+        setError(result.error || "Failed to send magic link")
       }
     } catch (error) {
       setError("An unexpected error occurred")
@@ -163,55 +185,24 @@ export default function LoginPage() {
               </div>
             )}
 
+            {success && (
+              <div className="mb-4 p-4 border border-green-200 bg-green-50 rounded-lg">
+                <p className="text-green-800">{success}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="email" className="text-white mb-1" ></Label>
                 <Input
                   id="email"
                   type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
                   placeholder="Enter your email"
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="password"></Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <Link
-                    href="/auth/forgot-password"
-                    className="text-white/70 hover:text-white font-medium"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
               </div>
 
               <Button
@@ -219,7 +210,7 @@ export default function LoginPage() {
                 className="w-full bg-[#E3C9A3] hover:bg-[#a48a6c] text-white h-14 rounded-xl"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Sending magic link..." : "Send Magic Link"}
               </Button>
             </form>
 

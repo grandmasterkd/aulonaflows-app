@@ -23,7 +23,6 @@ import Image from "next/image"
 import { authService } from "@/lib/services/auth-service"
 import { bookingService } from "@/lib/services/booking-service"
 import { creditService } from "@/lib/services/credit-service"
-import { notificationService } from "@/lib/services/notification-service"
 
 interface Booking {
   id: string
@@ -110,22 +109,19 @@ export default function AccountDashboard() {
     }
 
     try {
-      const result = await creditService.cancelBooking({
-        bookingId,
-        userId: user!.id,
-        reason: "User requested cancellation"
+      const response = await fetch('/api/cancel-booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ bookingId }),
       })
 
-      if (result.success) {
+      const result = await response.json()
+
+      if (response.ok) {
         // Refresh dashboard data
         await loadDashboardData(user!.id)
-
-        // Send cancellation confirmation email
-        await notificationService.sendCancellationConfirmation(
-          bookingId,
-          result.refundAmount,
-          result.creditAmount
-        )
 
         alert(`Booking cancelled successfully. ${result.refundAmount > 0 ? `Refund of £${result.refundAmount} will be processed.` : ''} ${result.creditAmount > 0 ? `Credit of £${result.creditAmount} has been added to your account.` : ''}`)
       } else {

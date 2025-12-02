@@ -19,28 +19,7 @@ import {
   AlertCircle
 } from "lucide-react"
 import Image from "next/image"
-import { authService } from "@/lib/services/auth-service"
-
-interface UserProfile {
-  id: string
-  email: string
-  first_name: string
-  last_name: string
-  phone?: string
-  date_of_birth?: string
-  emergency_contact_name?: string
-  emergency_contact_phone?: string
-  health_conditions?: string
-  marketing_consent: boolean
-  email_verified: boolean
-  phone_verified: boolean
-}
-
-interface UserPreferences {
-  notification_email: boolean
-  notification_sms: boolean
-  notification_marketing: boolean
-}
+import { authService, UserProfile, UserPreferences } from "@/lib/services/auth-service"
 
 export default function AccountSettings() {
   const [user, setUser] = useState<UserProfile | null>(null)
@@ -55,17 +34,14 @@ export default function AccountSettings() {
     first_name: '',
     last_name: '',
     phone: '',
-    date_of_birth: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    health_conditions: '',
-    marketing_consent: false,
   })
 
-  const [prefsData, setPrefsData] = useState({
+  const [prefsData, setPrefsData] = useState<UserPreferences>({
     notification_email: true,
     notification_sms: false,
     notification_marketing: false,
+    preferred_categories: [],
+    preferred_locations: [],
   })
 
   useEffect(() => {
@@ -85,11 +61,6 @@ export default function AccountSettings() {
       first_name: currentUser.first_name || '',
       last_name: currentUser.last_name || '',
       phone: currentUser.phone || '',
-      date_of_birth: currentUser.date_of_birth || '',
-      emergency_contact_name: currentUser.emergency_contact_name || '',
-      emergency_contact_phone: currentUser.emergency_contact_phone || '',
-      health_conditions: currentUser.health_conditions || '',
-      marketing_consent: currentUser.marketing_consent || false,
     })
 
     // Load preferences
@@ -222,20 +193,11 @@ export default function AccountSettings() {
                   <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="date_of_birth">Date of Birth</Label>
-                  <Input
-                    id="date_of_birth"
-                    type="date"
-                    value={formData.date_of_birth}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date_of_birth: e.target.value }))}
                   />
                 </div>
               </div>
@@ -249,52 +211,7 @@ export default function AccountSettings() {
             </CardContent>
           </Card>
 
-          {/* Emergency Contact */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Emergency Contact
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="emergency_contact_name">Emergency Contact Name</Label>
-                  <Input
-                    id="emergency_contact_name"
-                    value={formData.emergency_contact_name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="emergency_contact_phone">Emergency Contact Phone</Label>
-                  <Input
-                    id="emergency_contact_phone"
-                    value={formData.emergency_contact_phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="health_conditions">Health Conditions / Allergies</Label>
-                <Textarea
-                  id="health_conditions"
-                  value={formData.health_conditions}
-                  onChange={(e) => setFormData(prev => ({ ...prev, health_conditions: e.target.value }))}
-                  placeholder="Please let us know about any health conditions, allergies, or special requirements..."
-                  rows={3}
-                />
-              </div>
 
-              <div className="pt-4">
-                <Button onClick={handleSaveProfile} disabled={isSaving}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Emergency Info'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Notification Preferences */}
           <Card>
@@ -347,24 +264,7 @@ export default function AccountSettings() {
             </CardContent>
           </Card>
 
-          {/* Marketing Consent */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="marketing_consent"
-                  checked={formData.marketing_consent}
-                  onCheckedChange={(checked) =>
-                    setFormData(prev => ({ ...prev, marketing_consent: checked as boolean }))
-                  }
-                />
-                <Label htmlFor="marketing_consent">
-                  I consent to receiving marketing communications and agree to the{" "}
-                  <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </div>

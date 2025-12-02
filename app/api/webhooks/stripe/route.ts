@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
-import { createClient } from "@/lib/supabase/server"
+import { createClient } from "@supabase/supabase-js"
 import { sendBookingConfirmationEmail } from "@/lib/email"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
     console.log("[v0] Supabase client created")
 
     if (event.type === "checkout.session.completed") {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
               name: customerName,
               email: customerEmail,
               phone: customerPhone,
-              location: "Glasgow",
+              location: "",
               booking_count: 1,
             })
             .select()
@@ -176,15 +176,11 @@ export async function POST(request: NextRequest) {
       const { data: payment, error: paymentError } = await supabase
         .from("payments")
         .insert({
-          name: customerName,
-          event: eventData?.name || "Unknown Event",
-          date: new Date().toISOString(),
+          booking_id: booking.id,
           amount: (session.amount_total || 0) / 100,
           payment_method: "card",
-          payment_status: "paid",
-          stripe_payment_intent_id: session.payment_intent as string,
-          stripe_session_id: session.id,
-          booking_id: booking.id,
+          status: "paid",
+          transaction_id: session.payment_intent as string,
         })
         .select()
         .single()
@@ -226,13 +222,10 @@ export async function POST(request: NextRequest) {
       const { data: failedPayment, error: paymentError } = await supabase
         .from("payments")
         .insert({
-          name: "Failed Payment",
-          event: "Unknown Event",
-          date: new Date().toISOString(),
           amount: (paymentIntent.amount || 0) / 100,
           payment_method: "card",
-          payment_status: "failed",
-          stripe_payment_intent_id: paymentIntent.id,
+          status: "failed",
+          transaction_id: paymentIntent.id,
         })
         .select()
         .single()

@@ -12,15 +12,8 @@ export interface UserProfile {
   first_name: string
   last_name: string
   phone?: string
-  date_of_birth?: string
-  emergency_contact_name?: string
-  emergency_contact_phone?: string
-  health_conditions?: string
-  marketing_consent: boolean
-  account_status: 'active' | 'suspended' | 'inactive'
-  email_verified: boolean
-  phone_verified: boolean
   role: string
+  image_url?: string
   created_at: string
   updated_at: string
 }
@@ -42,10 +35,8 @@ export interface AuthResult {
 
 export interface RegistrationData {
   email: string
-  password: string
-  full_name: string
-  date_of_birth?: string
-  marketing_consent?: boolean
+  first_name: string
+  last_name: string
 }
 
 export class AuthService {
@@ -56,81 +47,137 @@ export class AuthService {
   }
 
   /**
-   * Register a new user account
+   * Send magic link for user registration/signin
    */
-  async register(data: RegistrationData): Promise<AuthResult> {
+  async sendMagicLink(email: string, role: 'user' | 'admin' = 'user', userData?: { first_name?: string; last_name?: string }): Promise<{ success: boolean; error?: string }> {
     try {
-      const { data: authData, error: authError } = await this.supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
+      // Redirect to callback page first, then callback handles final redirect
+      let baseUrl = process.env.NEXT_PUBLIC_APP_URL
+      if (!baseUrl && typeof window !== 'undefined') {
+        baseUrl = window.location.origin
+      } else if (baseUrl && typeof window !== 'undefined' && window.location.origin.includes('localhost')) {
+        // Override production URL for localhost development
+        baseUrl = window.location.origin
+      }
+      baseUrl = baseUrl || 'http://localhost:3000'
+      const callbackUrl = `${baseUrl}/auth/callback`
+      console.log('Sending magic link to:', email, 'baseUrl:', baseUrl, 'callback URL:', callbackUrl, 'window.location.origin:', typeof window !== 'undefined' ? window.location.origin : 'N/A')
+
+      const metadata: any = { role }
+      if (userData?.first_name && userData?.last_name) {
+        metadata.first_name = userData.first_name
+        metadata.last_name = userData.last_name
+        metadata.display_name = `${userData.first_name} ${userData.last_name}`
+      }
+
+      console.log('Magic link metadata:', metadata)
+
+      const { error } = await this.supabase.auth.signInWithOtp({
+        email,
         options: {
-          data: {
-            full_name: data.full_name,
-            date_of_birth: data.date_of_birth,
-          }
-        }
+          emailRedirectTo: callbackUrl,
+          data: metadata,
+        },
       })
 
-      if (authError) {
-        return { success: false, error: authError.message }
+      if (error) {
+        console.error('Supabase signInWithOtp error:', error)
+        return { success: false, error: error.message }
       }
 
-      if (!authData.user) {
-        return { success: false, error: 'Registration failed' }
-      }
-
-      // Create user profile
-      const { error: profileError } = await this.supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: data.email,
-          first_name: data.full_name,
-          last_name: '',
-          date_of_birth: data.date_of_birth,
-          marketing_consent: data.marketing_consent || false,
-          email_verified: false,
-          phone_verified: false,
-          role: 'user',
-        })
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError)
-        // Clean up auth user if profile creation fails
-        await this.supabase.auth.admin.deleteUser(authData.user.id)
-        return { success: false, error: 'Failed to create user profile' }
-      }
-
-      // Create default preferences
-      const { error: prefsError } = await this.supabase
-        .from('user_preferences')
-        .insert({
-          user_id: authData.user.id,
-          notification_email: true,
-          notification_sms: false,
-          notification_marketing: data.marketing_consent || false,
-        })
-
-      if (prefsError) {
-        console.error('Preferences creation error:', prefsError)
-        // Non-critical error, continue
-      }
-
-      return {
-        success: true,
-        user: await this.getUserProfile(authData.user.id),
-        session: authData.session
-      }
+      console.log('Magic link sent successfully')
+      return { success: true }
     } catch (error) {
-      console.error('Registration error:', error)
+      console.error('Send magic link error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
 
   /**
-   * Sign in user with email/password
+   * Handle magic link callback and create profile if needed
    */
-  async signIn(email: string, password: string): Promise<AuthResult> {
+  async handleMagicLinkCallback(): Promise<AuthResult> {
+    try {
+      const { data, error } = await this.supabase.auth.getSession()
+
+      if (error) {
+        return { success: false, error: error.message }
+      }
+
+      if (!data.session?.user) {
+        return { success: false, error: 'No session found' }
+      }
+
+      const user = data.session.user
+      const role = user.user_metadata?.role || 'user'
+
+      // Check if profile exists
+      let profile = await this.getUserProfile(user.id)
+
+      if (!profile) {
+        // Create profile with metadata
+        const { error: profileError } = await this.supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            role,
+          })
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+          return { success: false, error: 'Failed to create user profile' }
+        }
+
+        profile = await this.getUserProfile(user.id)
+      } else {
+        // Update existing profile with any missing data from metadata
+        const updates: any = {}
+        if (!profile.first_name && user.user_metadata?.first_name) {
+          updates.first_name = user.user_metadata.first_name
+        }
+        if (!profile.last_name && user.user_metadata?.last_name) {
+          updates.last_name = user.user_metadata.last_name
+        }
+
+        if (Object.keys(updates).length > 0) {
+          const { error: updateError } = await this.supabase
+            .from('profiles')
+            .update(updates)
+            .eq('id', user.id)
+
+          if (updateError) {
+            console.error('Profile update error:', updateError)
+          } else {
+            profile = await this.getUserProfile(user.id)
+          }
+        }
+      }
+
+      return {
+        success: true,
+        user: profile,
+        session: data.session
+      }
+    } catch (error) {
+      console.error('Magic link callback error:', error)
+      return { success: false, error: 'An unexpected error occurred' }
+    }
+  }
+
+  /**
+   * Sign in user with magic link (for users)
+   */
+  async signIn(email: string): Promise<{ success: boolean; error?: string }> {
+    return this.sendMagicLink(email, 'user')
+  }
+
+  /**
+   * Sign in admin with email and password
+   */
+  async signInWithPassword(email: string, password: string): Promise<AuthResult> {
     try {
       const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
@@ -141,26 +188,47 @@ export class AuthService {
         return { success: false, error: error.message }
       }
 
-      const userProfile = await this.getUserProfile(data.user.id)
+      if (!data.session?.user) {
+        return { success: false, error: 'No session found' }
+      }
 
-      // Check account status
-      if (userProfile?.account_status !== 'active') {
-        await this.supabase.auth.signOut()
-        return {
-          success: false,
-          error: userProfile?.account_status === 'suspended'
-            ? 'Your account has been suspended. Please contact support.'
-            : 'Your account is inactive. Please contact support.'
+      const user = data.session.user
+
+      // Check if user is admin
+      let profile = await this.getUserProfile(user.id)
+
+      if (!profile) {
+        // Create profile if not exists (for existing admins)
+        const { error: profileError } = await this.supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            role: 'admin',
+          })
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError)
+          return { success: false, error: 'Failed to create user profile' }
         }
+
+        profile = await this.getUserProfile(user.id)
+      }
+
+      if (profile?.role !== 'Admin') {
+        await this.supabase.auth.signOut()
+        return { success: false, error: 'Access denied. Admin privileges required.' }
       }
 
       return {
         success: true,
-        user: userProfile,
+        user: profile,
         session: data.session
       }
     } catch (error) {
-      console.error('Sign in error:', error)
+      console.error('Password sign in error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -221,8 +289,7 @@ export class AuthService {
             email: user.email,
             first_name: user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || '',
             last_name: user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
-            email_verified: user.email_confirmed_at ? true : false,
-            account_status: 'active',
+            role: 'user',
           })
 
         if (profileError) {
@@ -230,33 +297,12 @@ export class AuthService {
           return { success: false, error: 'Failed to create user profile' }
         }
 
-        // Create default preferences
-        const { error: prefsError } = await this.supabase
-          .from('user_preferences')
-          .insert({
-            user_id: user.id,
-            notification_email: true,
-            notification_sms: false,
-            notification_marketing: false,
-          })
 
-        if (prefsError) {
-          console.error('OAuth preferences creation error:', prefsError)
-        }
 
         userProfile = await this.getUserProfile(user.id)
       }
 
-      // Check account status
-      if (userProfile?.account_status !== 'active') {
-        await this.supabase.auth.signOut()
-        return {
-          success: false,
-          error: userProfile?.account_status === 'suspended'
-            ? 'Your account has been suspended. Please contact support.'
-            : 'Your account is inactive. Please contact support.'
-        }
-      }
+
 
       return {
         success: true,
@@ -483,13 +529,10 @@ export class AuthService {
         return { success: false, error: 'Unauthorized' }
       }
 
-      // Soft delete by updating status
+      // Soft delete by updating status (if account_status exists, otherwise hard delete)
       const { error } = await this.supabase
         .from('profiles')
-        .update({
-          account_status: 'inactive',
-          updated_at: new Date().toISOString()
-        })
+        .delete()
         .eq('id', userId)
 
       if (error) {

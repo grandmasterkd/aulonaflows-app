@@ -7,21 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, X, Menu } from "lucide-react"
+import { X, Menu } from "lucide-react"
 import Image from "next/image"
-import { authService } from "@/lib/services/auth-service"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    password: "",
-    marketingConsent: false,
   })
-  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('returnUrl')
@@ -30,31 +27,34 @@ export default function RegisterPage() {
     e.preventDefault()
     setIsLoading(true)
     setError("")
-
-    // Validation
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long")
-      setIsLoading(false)
-      return
-    }
+    setSuccess("")
 
     try {
-      const result = await authService.register({
-        email: formData.email,
-        password: formData.password,
-        full_name: formData.fullName,
-        marketing_consent: formData.marketingConsent,
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+        }),
       })
 
-      if (result.success) {
-        // Redirect to return URL if provided, otherwise to account dashboard
-        if (returnUrl) {
-          router.push(returnUrl)
-        } else {
-          router.push("/account/dashboard")
-        }
+      const result = await response.json()
+
+      if (response.ok) {
+        // Store registration data for login page to use
+        localStorage.setItem('pendingRegistration', JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email
+        }))
+        // Redirect to login with success message
+        router.push('/auth/login?message=Account created successfully! Please log in with your email.')
       } else {
-        setError(result.error || "Registration failed")
+        setError(result.error || "Failed to create account")
       }
     } catch (error) {
       setError("An unexpected error occurred")
@@ -148,16 +148,34 @@ export default function RegisterPage() {
               </div>
             )}
 
+            {success && (
+              <div className="mb-4 p-4 border border-green-200 bg-green-50 rounded-lg">
+                <p className="text-green-800">{success}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="fullName" className="text-white mb-1" ></Label>
+                <Label htmlFor="firstName" className="text-white mb-1" ></Label>
                 <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   required
                   className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
-                  placeholder="Enter your name"
+                  placeholder="Enter your first name"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="lastName" className="text-white mb-1" ></Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  required
+                  className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
+                  placeholder="Enter your last name"
                 />
               </div>
 
@@ -169,53 +187,9 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
-                  className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm" 
+                  className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm"
                   placeholder="Enter your email"
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="password"></Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    className="mt-1 bg-transparent h-14 border border-white/30 text-white rounded-xl placeholder-white/70 text-sm" 
-                    minLength={8}
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                className="text-white/50"
-                  id="marketingConsent"
-                  checked={formData.marketingConsent}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, marketingConsent: checked as boolean })
-                  }
-                />
-                <label
-                  htmlFor="marketingConsent"
-                  className="text-sm text-white/50 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  I agree to receive marketing communications and updates about AulonaFlows services.
-                </label>
               </div>
 
               <Button

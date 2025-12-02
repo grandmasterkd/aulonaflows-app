@@ -6,6 +6,8 @@
 import { createClient as createClientClient } from '@/lib/supabase/client'
 import { Resend } from 'resend'
 
+const RESEND_API_KEY = process?.env?.RESEND_API_KEY
+
 export interface NotificationData {
   userId: string
   type: 'booking_confirmation' | 'payment_success' | 'cancellation_confirmed' | 'refund_processed' | 'credit_issued' | 'credit_expiring' | 'bundle_modified' | 'event_reminder'
@@ -24,11 +26,14 @@ export interface EmailTemplate {
 
 export class NotificationService {
   private supabase: any
-  private resend: any
+  private resend: Resend | null = null
 
   constructor() {
     this.supabase = createClientClient()
-    this.resend = new Resend(process?.env?.RESEND_API_KEY )
+    // Only initialize Resend on server side
+    if (typeof window === 'undefined') {
+      this.resend = new Resend(process.env.RESEND_API_KEY!)
+    }
   }
 
   /**
@@ -460,6 +465,10 @@ AulonaFlows Team
       for (const notification of notifications) {
         try {
           // Send email using Resend
+          if (!this.resend) {
+            throw new Error('Email service not available')
+          }
+
           const { data: emailData, error: emailError } = await this.resend.emails.send({
             from: "Aulona Flows <contact@aulonaflows.com>",
             to: [notification.email],

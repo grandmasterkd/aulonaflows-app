@@ -2,10 +2,9 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getUserWithProfile } from "@/lib/supabase/auth"
 import { AdminSidebar } from "@/components/admin-sidebar"
-import { Button } from "@/components/ui/button"
+import { AddAdminForm } from "@/components/add-admin-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -14,6 +13,7 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminUsersPage() {
+
   const supabase = await createClient()
 
   const { user, profile } = await getUserWithProfile()
@@ -22,19 +22,36 @@ export default async function AdminUsersPage() {
     redirect("/admin/login")
   }
 
-  if (profile.role !== 'admin') {
-    redirect("/account/dashboard")
+  if (profile.role !== 'Admin') {
+    redirect("/admin/login")
   }
 
-  // Fetch all users
-  const { data: users, error } = await supabase
+  // Fetch all users from both profiles and admins tables
+  const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching users:', error)
+    console.log("profile:",profiles)
+
+  const { data: admins, error: adminsError } = await supabase
+    .from('admins')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (profilesError) {
+    console.error('Error fetching profiles:', profilesError)
   }
+
+  if (adminsError) {
+    console.error('Error fetching admins:', adminsError)
+  }
+
+  // Combine and sort users
+  const users = [...(profiles || []), ...(admins || [])].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -45,6 +62,8 @@ export default async function AdminUsersPage() {
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
             <p className="text-gray-600">Manage user roles and permissions</p>
           </div>
+
+          <AddAdminForm />
 
           <div className="grid gap-4">
             {users?.map((userProfile) => (
@@ -57,7 +76,7 @@ export default async function AdminUsersPage() {
                       </CardTitle>
                       <p className="text-sm text-gray-600">{userProfile.email}</p>
                     </div>
-                    <Badge variant={userProfile.role === 'admin' ? 'default' : 'secondary'}>
+                    <Badge variant={userProfile.role === 'Admin' ? 'default' : 'secondary'}>
                       {userProfile.role}
                     </Badge>
                   </div>
@@ -67,26 +86,13 @@ export default async function AdminUsersPage() {
                     <span className="text-sm text-gray-500">
                       Joined: {new Date(userProfile.created_at).toLocaleDateString()}
                     </span>
-                    <form action={`/admin/users/${userProfile.id}/update-role`} method="POST" className="flex items-center gap-2">
-                      <Select name="role" defaultValue={userProfile.role}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="user">User</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button type="submit" size="sm" variant="outline">
-                        Update
-                      </Button>
-                    </form>
+
                   </div>
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
+          </div>    
+        </div>     
       </main>
     </div>
   )

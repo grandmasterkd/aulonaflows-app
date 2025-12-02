@@ -5,6 +5,7 @@ import localFont from "next/font/local"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
+import { Toaster } from "sonner"
 
 
 
@@ -51,6 +52,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${megafield.variable} font-sans antialiased`}>
         <Suspense fallback={null}>{children}</Suspense>
         <Analytics />
+        <Toaster richColors expand={true} position="top-center" />
       </body>
     </html>
   )
