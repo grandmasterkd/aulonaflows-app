@@ -20,7 +20,7 @@ export default async function AdminDashboardPage({ searchParams }: DashboardPage
 
   const { profile } = await getUserWithProfile()
 
-  if (!profile || profile.role !== 'Admin') {
+  if (!profile || profile.role !== 'admin') {
    
     redirect("/admin/login")
   }

@@ -122,25 +122,40 @@ export async function POST(request: NextRequest) {
         message: specialRequirements,
       }
 
-      const { data: booking, error: bookingError } = await supabase
+      // Check for existing booking to prevent duplicates
+      const { data: existingBooking } = await supabase
         .from("bookings")
-        .insert({
-          user_id: userId,
-          class_id: eventId,
-          booking_date: new Date().toISOString(),
-          notes: JSON.stringify(notesObject),
-          payment_status: "paid",
-          status: "confirmed",
-        })
-        .select()
+        .select("id")
+        .eq("user_id", userId)
+        .eq("class_id", eventId)
         .single()
 
-      if (bookingError) {
-        console.error("[v0] Error creating booking:", bookingError)
-        return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
-      }
+      let booking
+      if (existingBooking) {
+        console.log("[v0] Booking already exists, using existing booking")
+        booking = existingBooking
+      } else {
+        const { data: newBooking, error: bookingError } = await supabase
+          .from("bookings")
+          .insert({
+            user_id: userId,
+            class_id: eventId,
+            booking_date: new Date().toISOString(),
+            notes: JSON.stringify(notesObject),
+            payment_status: "paid",
+            status: "confirmed",
+          })
+          .select()
+          .single()
 
-      console.log("[v0] Booking created:", booking)
+        if (bookingError) {
+          console.error("[v0] Error creating booking:", bookingError)
+          return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
+        }
+
+        console.log("[v0] Booking created:", newBooking)
+        booking = newBooking
+      }
 
       console.log("[v0] Updating event booking count")
       const { error: eventUpdateError } = await supabase

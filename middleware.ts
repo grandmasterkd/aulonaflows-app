@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (!profile || profile.role !== 'admin') {
+    if (!profile || profile.role?.toLowerCase() !== 'admin') {
       // Redirect non-admins to user dashboard
       const url = request.nextUrl.clone()
       url.pathname = "/account/dashboard"
@@ -83,7 +83,7 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profile && profile.role === 'admin') {
+    if (profile && profile.role?.toLowerCase() === 'admin') {
       // Redirect admins to admin dashboard
       const url = request.nextUrl.clone()
       url.pathname = "/admin/dashboard"

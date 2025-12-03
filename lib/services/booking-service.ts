@@ -40,7 +40,7 @@ export interface BookingDetails {
   notes?: string
   amount: number
   original_amount: number
-  booking_status: string
+  status: string
   payment_status: string
   booking_date: string
   cancellation_deadline?: string
@@ -228,19 +228,15 @@ export class BookingService {
       const { data, error } = await this.supabase
         .from('bookings')
         .select(`
-          *,
-          events (
-            id,
-            name,
-            date_time,
-            location,
-            instructor_name
-          ),
-          event_bundles (
-            id,
-            name,
-            description
-          )
+          id,
+          user_id,
+          class_id,
+          booking_date,
+          status,
+          payment_status,
+          notes,
+          created_at,
+          updated_at
         `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
@@ -250,7 +246,21 @@ export class BookingService {
         return []
       }
 
-      return data || []
+      // Fetch event details for each booking
+      const bookingsWithEvents = await Promise.all((data || []).map(async (booking) => {
+        if (booking.class_id) {
+          const { data: event } = await this.supabase
+            .from('events')
+            .select('id, name, date_time, location, instructor_name')
+            .eq('id', booking.class_id)
+            .single()
+
+          return { ...booking, events: event ? [event] : [] }
+        }
+        return { ...booking, events: [] }
+      }))
+
+      return bookingsWithEvents
     } catch (error) {
       console.error('Get user bookings error:', error)
       return []

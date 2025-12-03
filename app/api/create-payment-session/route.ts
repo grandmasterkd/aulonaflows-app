@@ -30,6 +30,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check for existing booking to prevent duplicates
+    const { data: existingBooking } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("user_id", bookingData.user_id)
+      .eq("class_id", eventId)
+      .single()
+
+    if (existingBooking) {
+      return NextResponse.json({ error: "You have already booked this event" }, { status: 400 })
+    }
+
     if (paymentMethodId) {
       // Handle Apple Pay / Payment Request
       const paymentIntent = await stripe.paymentIntents.create({

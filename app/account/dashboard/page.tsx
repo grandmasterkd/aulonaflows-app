@@ -26,18 +26,14 @@ import { creditService } from "@/lib/services/credit-service"
 
 interface Booking {
   id: string
-  booking_reference: string
-  amount: number
-  booking_status: string
-  payment_status: string
   booking_date: string
+  status: string
+  payment_status: string
+  notes?: string
   events?: Array<{
     name: string
     date_time: string
   }>
-  bundle?: {
-    name: string
-  }
 }
 
 interface Credit {
@@ -77,22 +73,15 @@ export default function AccountDashboard() {
 
   const loadDashboardData = async (userId: string) => {
     try {
-      const [bookingsData, creditsData, balance] = await Promise.all([
-        bookingService.getUserBookings(userId),
-        creditService.getUserCredits(userId),
-        creditService.getUserCreditBalance(userId)
-      ])
+      const bookingsData = await bookingService.getUserBookings(userId)
 
       setAllBookings(bookingsData)
       setBookings(bookingsData.slice(0, 5)) // Show last 5 bookings
-      setCredits(creditsData)
-      setCreditBalance(balance)
+      setCredits([]) // No credits table
+      setCreditBalance(0) // No credits
 
-      // Calculate total spent from confirmed/paid bookings
-      const total = bookingsData
-        .filter(booking => booking.booking_status === 'confirmed' && booking.payment_status === 'paid')
-        .reduce((sum, booking) => sum + booking.amount, 0)
-      setTotalSpent(total)
+      // No total spent calculation since no amount field
+      setTotalSpent(0)
     } catch (error) {
       console.error("Error loading dashboard data:", error)
     }
@@ -302,33 +291,32 @@ export default function AccountDashboard() {
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-medium">
-                              {booking.bundle ? booking.bundle.name : booking.events?.[0]?.name}
-                            </h3>
-                            <Badge className={getStatusColor(booking.booking_status)}>
-                              {booking.booking_status}
-                            </Badge>
-                            <Badge className={getPaymentStatusColor(booking.payment_status)}>
-                              {booking.payment_status}
-                            </Badge>
-                          </div>
+                           <div className="flex items-center gap-3 mb-2">
+                             <h3 className="text-lg font-medium">
+                               {booking.events?.[0]?.name || 'Event'}
+                             </h3>
+                             <Badge className={getStatusColor(booking.status)}>
+                               {booking.status}
+                             </Badge>
+                             <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                               {booking.payment_status}
+                             </Badge>
+                           </div>
 
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <p>Booking Reference: {booking.booking_reference}</p>
-                            <p>Date: {formatDate(booking.booking_date)}</p>
-                            <p>Amount: £{booking.amount}</p>
-                            {booking.events && booking.events.length > 0 && (
-                              <p>Event: {booking.events[0].name} - {formatDate(booking.events[0].date_time)}</p>
-                            )}
-                          </div>
+                           <div className="text-sm text-gray-600 space-y-1">
+                             <p>Booking ID: {booking.id}</p>
+                             <p>Date: {formatDate(booking.booking_date)}</p>
+                             {booking.events && booking.events.length > 0 && (
+                               <p>Event: {booking.events[0].name} - {formatDate(booking.events[0].date_time)}</p>
+                             )}
+                           </div>
                         </div>
 
                         <div className="flex gap-2">
                           <Link href={`/account/bookings/${booking.id}`}>
                             <Button variant="outline" size="sm">View Details</Button>
                           </Link>
-                           {booking.booking_status === 'confirmed' && (
+                            {booking.status === 'confirmed' && (
                              <Button
                                variant="outline"
                                size="sm"
@@ -496,28 +484,27 @@ export default function AccountDashboard() {
                    <div className="space-y-4">
                      {getFilteredBookings().map((booking) => (
                        <div key={booking.id} className="flex justify-between items-center p-4 border rounded-lg">
-                         <div>
-                           <h4 className="font-medium">
-                             {booking.bundle ? booking.bundle.name : booking.events?.[0]?.name}
-                           </h4>
-                           <p className="text-sm text-gray-600">
-                             {formatDate(booking.booking_date)} • Ref: {booking.booking_reference}
-                           </p>
-                           <div className="flex gap-2 mt-1">
-                             <Badge className={getStatusColor(booking.booking_status)}>
-                               {booking.booking_status}
-                             </Badge>
-                             <Badge className={getPaymentStatusColor(booking.payment_status)}>
-                               {booking.payment_status}
-                             </Badge>
-                           </div>
-                         </div>
-                         <div className="text-right">
-                           <p className="text-lg font-semibold">£{booking.amount}</p>
-                           <Link href={`/account/bookings/${booking.id}`}>
-                             <Button variant="outline" size="sm">View Details</Button>
-                           </Link>
-                         </div>
+                          <div>
+                            <h4 className="font-medium">
+                              {booking.events?.[0]?.name || 'Event'}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {formatDate(booking.booking_date)} • ID: {booking.id}
+                            </p>
+                            <div className="flex gap-2 mt-1">
+                              <Badge className={getStatusColor(booking.status)}>
+                                {booking.status}
+                              </Badge>
+                              <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                                {booking.payment_status}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Link href={`/account/bookings/${booking.id}`}>
+                              <Button variant="outline" size="sm">View Details</Button>
+                            </Link>
+                          </div>
                        </div>
                      ))}
                    </div>

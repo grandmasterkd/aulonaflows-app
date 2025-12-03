@@ -217,7 +217,7 @@ export class AuthService {
         profile = await this.getUserProfile(user.id)
       }
 
-      if (profile?.role !== 'Admin') {
+      if (profile?.role?.toLowerCase() !== 'admin') {
         await this.supabase.auth.signOut()
         return { success: false, error: 'Access denied. Admin privileges required.' }
       }

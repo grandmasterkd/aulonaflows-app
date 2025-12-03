@@ -22,7 +22,7 @@ export default async function AdminUsersPage() {
     redirect("/admin/login")
   }
 
-  if (profile.role !== 'Admin') {
+  if (profile.role !== 'admin') {
     redirect("/admin/login")
   }
 
