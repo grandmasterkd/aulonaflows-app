@@ -124,13 +124,8 @@ export default function BundleBookingPage() {
         events: data.bundle_events?.map((be: any) => be.events) || []
       }
 
-      // Filter events based on selected event IDs
-      const filteredEvents = bundleData.events.filter((event: Event) =>
-        eventIds.includes(event.id)
-      )
-
       setBundle(bundleData)
-      setSelectedEvents(filteredEvents)
+      setSelectedEvents(bundleData.events)
     }
     setIsLoading(false)
   }

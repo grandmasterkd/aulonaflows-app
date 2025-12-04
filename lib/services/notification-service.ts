@@ -451,7 +451,7 @@ AulonaFlows Team
         .eq('status', 'pending')
         .lte('scheduled_for', new Date().toISOString())
         .order('priority', { ascending: false })
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
         .limit(50) // Process in batches
 
       if (error || !notifications) {

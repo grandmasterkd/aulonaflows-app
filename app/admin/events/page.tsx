@@ -17,6 +17,7 @@ import { Plus, X, Filter, ChevronDown } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminNav } from "@/components/admin-nav"
+import { AdminPagination } from "@/components/admin-pagination"
 import Image from "next/image"
 
 interface Event {
@@ -45,6 +46,14 @@ export default function AdminEventsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const filterRef = useRef<HTMLDivElement>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 10
+  const router = useRouter()
+  const [adminName, setAdminName] = useState("")
+  const [adminRole, setAdminRole] = useState("")
+  const [profileImage, setProfileImage] = useState<string | null>(null)
+  const [newBookingsCount, setNewBookingsCount] = useState(0)
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -54,20 +63,15 @@ export default function AdminEventsPage() {
     capacity: "",
     price: "",
     instructor_name: "",
-    image_url: "",
     status: "active",
+    image_url: "",
   })
-  const router = useRouter()
-  const [adminName, setAdminName] = useState("")
-  const [adminRole, setAdminRole] = useState("")
-  const [profileImage, setProfileImage] = useState<string | null>(null)
-  const [newBookingsCount, setNewBookingsCount] = useState(0)
 
   useEffect(() => {
     checkAuth()
-    fetchEvents()
+    fetchEvents(currentPage)
     fetchNewBookingsCount()
-  }, [])
+  }, [currentPage])
 
   useEffect(() => {
     if (message) {
@@ -112,14 +116,20 @@ export default function AdminEventsPage() {
     }
   }
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (page: number = 1) => {
     const supabase = createClient()
-    const { data, error } = await supabase.from("events").select("*").order("date_time", { ascending: true })
+    const offset = (page - 1) * itemsPerPage
+    const { data, error, count } = await supabase
+      .from("events")
+      .select("*", { count: 'exact' })
+      .order("date_time", { ascending: false })
+      .range(offset, offset + itemsPerPage - 1)
 
     if (error) {
       console.error("Error fetching events:", error)
     } else {
       setEvents(data || [])
+      setTotalItems(count || 0)
     }
     setIsLoading(false)
   }
@@ -463,9 +473,15 @@ export default function AdminEventsPage() {
                   </TableBody>
                 </Table>
               </div>
-            </section>
+             </section>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+             <AdminPagination
+               currentPage={currentPage}
+               totalItems={totalItems}
+               itemsPerPage={itemsPerPage}
+             />
+
+             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{editingEvent ? "Edit Event" : "Add New Event"}</DialogTitle>

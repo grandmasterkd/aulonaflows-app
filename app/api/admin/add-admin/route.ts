@@ -47,14 +47,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user with this email already exists in admins table (using admin client to bypass RLS)
-    const { data: existingAdmin } = await adminSupabase
-      .from('admins')
+    // Check if user with this email already exists in profiles table
+    const { data: existingProfile } = await supabase
+      .from('profiles')
       .select('id')
       .eq('email', email)
       .maybeSingle()
 
-    if (existingAdmin) {
+    if (existingProfile) {
       return NextResponse.json(
         { error: 'A user with this email already exists' },
         { status: 400 }
@@ -88,9 +88,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create the admin entry
-    const { error: adminInsertError, data: adminData } = await adminSupabase
-      .from('admins')
+    // Create the admin profile entry
+    const { error: profileInsertError, data: profileData } = await supabase
+      .from('profiles')
       .insert({
         id: authData.user.id,
         email: email,
@@ -102,9 +102,9 @@ export async function POST(request: NextRequest) {
       })
       .select()
 
-    if (adminInsertError) {
-      console.error('Admin creation error:', adminInsertError)
-      console.error('Error details:', JSON.stringify(adminInsertError, null, 2))
+    if (profileInsertError) {
+      console.error('Profile creation error:', profileInsertError)
+      console.error('Error details:', JSON.stringify(profileInsertError, null, 2))
       console.error('Attempted insert data:', {
         id: authData.user.id,
         email: email,
@@ -112,18 +112,18 @@ export async function POST(request: NextRequest) {
         last_name: lastName,
         role: 'admin',
       })
-      // Try to clean up the auth user if admin creation failed
+      // Try to clean up the auth user if profile creation failed
       try {
         await adminSupabase.auth.admin.deleteUser(authData.user.id)
       } catch (deleteError) {
         console.error('Failed to clean up auth user:', deleteError)
       }
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to create admin account',
-          details: adminInsertError.message,
-          code: adminInsertError.code,
-          hint: adminInsertError.hint
+          details: profileInsertError.message,
+          code: profileInsertError.code,
+          hint: profileInsertError.hint
         },
         { status: 500 }
       )

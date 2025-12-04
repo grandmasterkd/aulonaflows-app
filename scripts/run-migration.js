@@ -25,7 +25,7 @@ async function runMigration() {
     console.log('🚀 Starting database migration...')
 
     // Read the migration file
-    const migrationPath = path.join(__dirname, '009_user_accounts_and_credits.sql')
+    const migrationPath = path.join(__dirname, '008_create_event_bundles.sql')
     const migrationSQL = fs.readFileSync(migrationPath, 'utf8')
 
     // Split the SQL into individual statements

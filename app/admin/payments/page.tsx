@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminNav } from "@/components/admin-nav"
+import { AdminPagination } from "@/components/admin-pagination"
 import Image from "next/image"
 
 interface Payment {
@@ -29,13 +30,16 @@ export default function AdminPaymentsPage() {
   const [adminRole, setAdminRole] = useState("")
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [newBookingsCount, setNewBookingsCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 10
   const router = useRouter()
 
   useEffect(() => {
     checkAuth()
-    fetchPayments()
+    fetchPayments(currentPage)
     fetchNewBookingsCount()
-  }, [])
+  }, [currentPage])
 
   useEffect(() => {
     const filtered = payments.filter((payment) => {
@@ -67,15 +71,21 @@ export default function AdminPaymentsPage() {
     }
   }
 
-  const fetchPayments = async () => {
+  const fetchPayments = async (page: number = 1) => {
     const supabase = createClient()
-    const { data, error } = await supabase.from("payments").select("*").order("created_at", { ascending: false })
+    const offset = (page - 1) * itemsPerPage
+    const { data, error, count } = await supabase
+      .from("payments")
+      .select("*", { count: 'exact' })
+      .order("created_at", { ascending: false })
+      .range(offset, offset + itemsPerPage - 1)
 
     if (error) {
       console.error("Error fetching payments:", error)
     } else {
       setPayments(data || [])
       setFilteredPayments(data || [])
+      setTotalItems(count || 0)
     }
     setIsLoading(false)
   }
@@ -180,9 +190,15 @@ export default function AdminPaymentsPage() {
                   </TableBody>
                 </Table>
               </div>
-            </section>
-          </div>
-        </div>
+             </section>
+
+             <AdminPagination
+               currentPage={currentPage}
+               totalItems={totalItems}
+               itemsPerPage={itemsPerPage}
+             />
+           </div>
+         </div>
       </main>
     </div>
   )

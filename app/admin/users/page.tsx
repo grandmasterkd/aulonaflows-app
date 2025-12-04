@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getUserWithProfile } from "@/lib/supabase/auth"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AddAdminForm } from "@/components/add-admin-form"
+import { AdminPagination } from "@/components/admin-pagination"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { Metadata } from "next"
@@ -12,7 +13,11 @@ export const metadata: Metadata = {
   description: "Manage users and their roles.",
 }
 
-export default async function AdminUsersPage() {
+interface AdminUsersPageProps {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
 
   const supabase = await createClient()
 
@@ -26,31 +31,25 @@ export default async function AdminUsersPage() {
     redirect("/admin/login")
   }
 
-  // Fetch all users from both profiles and admins tables
-  const { data: profiles, error: profilesError } = await supabase
+  const itemsPerPage = 10
+  const currentPage = parseInt((searchParams.page as string) || '1')
+  const offset = (currentPage - 1) * itemsPerPage
+
+  // Fetch users with pagination
+  const { data: profiles, error: profilesError, count } = await supabase
     .from('profiles')
-    .select('*')
+    .select('*', { count: 'exact' })
     .order('created_at', { ascending: false })
+    .range(offset, offset + itemsPerPage - 1)
 
-    console.log("profile:",profiles)
-
-  const { data: admins, error: adminsError } = await supabase
-    .from('admins')
-    .select('*')
-    .order('created_at', { ascending: false })
+  console.log("profiles:", profiles, "count:", count)
 
   if (profilesError) {
     console.error('Error fetching profiles:', profilesError)
   }
 
-  if (adminsError) {
-    console.error('Error fetching admins:', adminsError)
-  }
-
-  // Combine and sort users
-  const users = [...(profiles || []), ...(admins || [])].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  )
+  const users = profiles || []
+  const totalItems = count || 0
 
 
   return (
@@ -65,35 +64,41 @@ export default async function AdminUsersPage() {
 
           <AddAdminForm />
 
-          <div className="grid gap-4">
-            {users?.map((userProfile) => (
-              <Card key={userProfile.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">
-                        {userProfile.first_name} {userProfile.last_name}
-                      </CardTitle>
-                      <p className="text-sm text-gray-600">{userProfile.email}</p>
-                    </div>
-                    <Badge variant={userProfile.role === 'Admin' ? 'default' : 'secondary'}>
-                      {userProfile.role}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">
-                      Joined: {new Date(userProfile.created_at).toLocaleDateString()}
-                    </span>
+           <div className="grid gap-4">
+             {users?.map((userProfile) => (
+               <Card key={userProfile.id}>
+                 <CardHeader>
+                   <div className="flex items-center justify-between">
+                     <div>
+                       <CardTitle className="text-lg">
+                         {userProfile.first_name} {userProfile.last_name}
+                       </CardTitle>
+                       <p className="text-sm text-gray-600">{userProfile.email}</p>
+                     </div>
+                     <Badge variant={userProfile.role === 'admin' ? 'default' : 'secondary'}>
+                       {userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)}
+                     </Badge>
+                   </div>
+                 </CardHeader>
+                 <CardContent>
+                   <div className="flex items-center gap-4">
+                     <span className="text-sm text-gray-500">
+                       Joined: {new Date(userProfile.created_at).toLocaleDateString()}
+                     </span>
 
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>    
-        </div>     
-      </main>
-    </div>
-  )
+                   </div>
+                 </CardContent>
+               </Card>
+             ))}
+           </div>
+
+           <AdminPagination
+             currentPage={currentPage}
+             totalItems={totalItems}
+             itemsPerPage={itemsPerPage}
+           />
+         </div>
+       </main>
+     </div>
+   )
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,7 +13,6 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient()
-    const adminSupabase = createAdminClient()
 
     // Find the invite by token
     const { data: invite, error: inviteError } = await supabase
@@ -63,28 +61,8 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if this update fails, as the account is already activated
     }
 
-    // Create the admin record
-    const { error: adminError } = await supabase
-      .from('admins')
-      .insert({
-        id: invite.user_id,
-        email: invite.email,
-        first_name: invite.first_name,
-        last_name: invite.last_name,
-        role: invite.role,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-
-    if (adminError) {
-      console.error('Admin creation error:', adminError)
-      return NextResponse.json(
-        { error: 'Failed to create admin record' },
-        { status: 500 }
-      )
-    }
-
-    // Create profile record for dashboard authentication
+    // Create or update profile record for dashboard authentication
+    // Note: Profile may already exist from magic link callback, but ensure role is set
     const { error: profileError } = await supabase
       .from('profiles')
       .upsert({
@@ -92,15 +70,17 @@ export async function POST(request: NextRequest) {
         email: invite.email,
         first_name: invite.first_name,
         last_name: invite.last_name,
-        role: 'Admin', // Capital A to match dashboard auth check
+        role: 'admin',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
 
     if (profileError) {
-      console.error('Profile creation error:', profileError)
-      // Don't fail the entire activation if profile creation fails
-      // The admin record was created successfully
+      console.error('Profile creation/update error:', profileError)
+      return NextResponse.json(
+        { error: 'Failed to create/update admin profile' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({

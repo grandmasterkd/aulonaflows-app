@@ -21,7 +21,7 @@ import {
   Settings,
   Camera,
   Package,
-  Shield,
+  // Shield,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -33,7 +33,7 @@ const sidebarItems = [
   { title: "Event Bundles", href: "/admin/events/bundles", icon: Package },
   { title: "Clients", href: "/admin/clients", icon: Users },
   { title: "Payments", href: "/admin/payments", icon: CreditCard },
-  { title: "Users", href: "/admin/users", icon: Shield },
+  // { title: "Users", href: "/admin/users", icon: Shield },
 ]
 
 export function AdminSidebar() {

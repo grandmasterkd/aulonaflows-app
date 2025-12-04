@@ -11,11 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Package, Edit, Trash2 } from "lucide-react"
+import { Plus, Edit, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminNav } from "@/components/admin-nav"
+import { AdminPagination } from "@/components/admin-pagination"
 import { calculateBundleDiscount, calculateBundlePrice, validateBundleEventCount } from "@/lib/utils/bundles"
+import Image from "next/image"
 
 interface Bundle {
   id: string
@@ -49,6 +51,9 @@ export default function AdminBundlesPage() {
   const [editingBundle, setEditingBundle] = useState<Bundle | null>(null)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 10
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -63,10 +68,9 @@ export default function AdminBundlesPage() {
 
   useEffect(() => {
     checkAuth()
-    fetchBundles()
+    fetchBundles(currentPage)
     fetchEvents()
-    fetchNewBookingsCount()
-  }, [])
+  }, [currentPage])
 
   useEffect(() => {
     if (message) {
@@ -95,9 +99,10 @@ export default function AdminBundlesPage() {
     }
   }
 
-  const fetchBundles = async () => {
+  const fetchBundles = async (page: number = 1) => {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const offset = (page - 1) * itemsPerPage
+    const { data, error, count } = await supabase
       .from("event_bundles")
       .select(`
         *,
@@ -108,8 +113,9 @@ export default function AdminBundlesPage() {
             price
           )
         )
-      `)
+      `, { count: 'exact' })
       .order("created_at", { ascending: false })
+      .range(offset, offset + itemsPerPage - 1)
 
     if (error) {
       console.error("Error fetching bundles:", error)
@@ -120,6 +126,7 @@ export default function AdminBundlesPage() {
         events: bundle.bundle_events?.map((be: any) => be.events) || []
       }))
       setBundles(formattedBundles)
+      setTotalItems(count || 0)
     }
     setIsLoading(false)
   }
@@ -331,12 +338,12 @@ export default function AdminBundlesPage() {
   const pricing = calculateBundlePrice(selectedEvents)
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center animate-pulse">
-        <Package className="w-12 h-12 text-gray-400" />
-      </div>
-    )
-  }
+      return (
+        <div className="min-h-screen flex items-center justify-center animate-pulse">
+          <Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} />
+        </div>
+      )
+    }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -365,12 +372,12 @@ export default function AdminBundlesPage() {
 
             <section>
               <div className="w-full bg-[#E3C9A3]/40 p-4 rounded-none">
-                <div className="flex justify-between items-center">
+                <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center">
                   <h2 className="text-xl font-medium">All Event Bundles</h2>
-                  <div className="flex gap-2">
+                  <div className="flex md:flex-none flex-wrap grow-1 gap-2">
                     <Input
                       placeholder="Search bundles..."
-                      className="w-[250px] h-12 rounded-lg bg-white border-none"
+                      className="w-full md:w-[250px] h-12 rounded-lg bg-white border-none"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -427,9 +434,15 @@ export default function AdminBundlesPage() {
                   </TableBody>
                 </Table>
               </div>
-            </section>
+             </section>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+             <AdminPagination
+               currentPage={currentPage}
+               totalItems={totalItems}
+               itemsPerPage={itemsPerPage}
+             />
+
+             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{editingBundle ? "Edit Event Bundle" : "Create New Event Bundle"}</DialogTitle>

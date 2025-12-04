@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input"
 import { CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Search, Package } from "lucide-react"
-import { BundleModal } from "@/components/bundle-modal"
+import { ArrowLeft, Search } from "lucide-react"
 
 interface Event {
   id: string
@@ -22,8 +21,6 @@ interface Event {
   instructor_name: string
   image_url: string
   status: string
-  isInBundle?: boolean
-  bundleId?: string
 }
 
 interface Bundle {
@@ -43,38 +40,15 @@ export default function BookingOverviewPage() {
   const [activeFilter, setActiveFilter] = useState("All Events")
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null)
-  const [isBundleModalOpen, setIsBundleModalOpen] = useState(false)
 
-  const filters = ["All Events", "Yoga Classes", "Sound Therapy", "Wellness Events"]
+  const filters = ["All Events", "Bundles", "Yoga Classes", "Sound Therapy", "Wellness Events"]
 
   useEffect(() => {
     fetchEvents()
     fetchBundles()
   }, [])
 
-  useEffect(() => {
-    if (events.length > 0 && bundles.length >= 0) {
-      // Mark events that are in bundles
-      const bundleEventIds = new Set<string>()
-      const eventToBundleMap = new Map<string, string>()
 
-      bundles.forEach(bundle => {
-        bundle.events.forEach(event => {
-          bundleEventIds.add(event.id)
-          eventToBundleMap.set(event.id, bundle.id)
-        })
-      })
-
-      const eventsWithBundleInfo = events.map(event => ({
-        ...event,
-        isInBundle: bundleEventIds.has(event.id),
-        bundleId: eventToBundleMap.get(event.id)
-      }))
-
-      setEvents(eventsWithBundleInfo)
-    }
-  }, [events.length, bundles])
 
   const filterEvents = useCallback(() => {
     let filtered = events
@@ -160,15 +134,7 @@ export default function BookingOverviewPage() {
     return event.current_bookings >= event.capacity
   }
 
-  const handleEventClick = (event: Event) => {
-    if (event.isInBundle && event.bundleId) {
-      const bundle = bundles.find(b => b.id === event.bundleId)
-      if (bundle) {
-        setSelectedBundle(bundle)
-        setIsBundleModalOpen(true)
-      }
-    }
-  }
+
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center animate-pulse"><Image src="/aulonaflows-logo-dark.svg" alt="AulonaFlows Logo" width={60} height={60} /></div>
@@ -237,44 +203,159 @@ export default function BookingOverviewPage() {
 
           {/* Events Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-0 md:pb-12">
-            {filteredEvents.map((event) => (
+            {activeFilter === "Bundles" ? bundles.map((bundle) => (
               <div
-                key={event.id}
+                key={bundle.id}
                 className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow"
-                onClick={() => event.isInBundle ? handleEventClick(event) : null}
               >
                 <div
                   className="h-80 bg-cover relative"
-
+                >
+                  <Image src="/aulona-yoga-services.jpeg" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <div className="absolute inset-0 transition-colors" />
+                  <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
+                    <div className="mb-4" >
+                    <h3 className="text-xl text-white font-medium">{bundle.name}</h3>
+                    <p className="text-xs text-gray-200">
+                       {bundle.events.length} Events • Save {bundle.discount_percentage}%
+                    </p>
+                    </div>
+                    <Link href={`/book/bundle/${bundle.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Bundle</Link>
+                  </div>
+                </div>
+                <CardContent className="hidden p-6 space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 line-clamp-2">{bundle.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-[#654625]">£{bundle.total_price}</span>
+                    <Link
+                      href={`/book/bundle/${bundle.id}`}
+                      className="brand-bg-brown brand-text-cream px-6 py-2 rounded-3xl font-medium hover:bg-opacity-90 transition-all"
+                    >
+                      Book Bundle
+                    </Link>
+                  </div>
+                </CardContent>
+              </div>
+            )) : activeFilter === "All Events" ? [...filteredEvents.map((event) => (
+              <div
+                key={event.id}
+                className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow"
+              >
+                <div
+                  className="h-80 bg-cover relative"
                 >
                   <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >
                     <h3 className="text-xl text-white font-medium">{event.name}</h3>
-
                     <p className="text-xs text-gray-200">
                        {formatDate(event.date_time)}
                     </p>
                     </div>
-
-                    {event.isInBundle ? (
-                      <button className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl">
-                        View Bundle
-                      </button>
-                    ) : (
-                      <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
-                    )}
+                    <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
                   </div>
                   {isFullyBooked(event) && (
                     <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                       Fully Booked
                     </div>
                   )}
-                  {event.isInBundle && (
-                    <div className="absolute top-4 left-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                      <Package className="w-3 h-3" />
-                      Bundle
+                </div>
+                <CardContent className="hidden p-6 space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Date:</span> {formatDate(event.date_time)}
+                    </p>
+                    <p className="text-xs text-gray-200 line-clamp-1">{event.description}</p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Type:</span> {event.category}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Instructor:</span> {event.instructor_name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Spaces:</span> {event.current_bookings}/{event.capacity}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Location:</span> {event.location}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-[#654625]">£{event.price}</span>
+                    {!isFullyBooked(event) ? (
+                      <Link
+                        href={`/book/${event.id}`}
+                        className="brand-bg-brown brand-text-cream px-6 py-2 rounded-3xl font-medium hover:bg-opacity-90 transition-all"
+                      >
+                        Book Now
+                      </Link>
+                    ) : (
+                      <span className="text-gray-500 px-6 py-2 rounded-3xl font-medium border border-gray-300">
+                        Fully Booked
+                      </span>
+                    )}
+                  </div>
+                </CardContent>
+              </div>
+            )), ...bundles.map((bundle) => (
+              <div
+                key={bundle.id}
+                className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow"
+              >
+                <div
+                  className="h-80 bg-cover relative"
+                >
+                  <Image src="/aulona-yoga-services.jpeg" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <div className="absolute inset-0 transition-colors" />
+                  <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
+                    <div className="mb-4" >
+                    <h3 className="text-xl text-white font-medium">{bundle.name}</h3>
+                    <p className="text-xs text-gray-200">
+                       {bundle.events.length} Events • Save {bundle.discount_percentage}%
+                    </p>
+                    </div>
+                    <Link href={`/book/bundle/${bundle.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Bundle</Link>
+                  </div>
+                </div>
+                <CardContent className="hidden p-6 space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 line-clamp-2">{bundle.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-[#654625]">£{bundle.total_price}</span>
+                    <Link
+                      href={`/book/bundle/${bundle.id}`}
+                      className="brand-bg-brown brand-text-cream px-6 py-2 rounded-3xl font-medium hover:bg-opacity-90 transition-all"
+                    >
+                      Book Bundle
+                    </Link>
+                  </div>
+                </CardContent>
+              </div>
+            ))] : filteredEvents.map((event) => (
+              <div
+                key={event.id}
+                className="cursor-pointer bg-gray-200 rounded-3xl border-none overflow-hidden group hover:shadow-md transition-shadow"
+              >
+                <div
+                  className="h-80 bg-cover relative"
+                >
+                  <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <div className="absolute inset-0 transition-colors" />
+                  <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
+                    <div className="mb-4" >
+                    <h3 className="text-xl text-white font-medium">{event.name}</h3>
+                    <p className="text-xs text-gray-200">
+                       {formatDate(event.date_time)}
+                    </p>
+                    </div>
+                    <Link href={`/book/${event.id}`} className="cursor-pointer backdrop-blur-sm hover:shadow-sm hover:bg-[#57463B] hover:text-[#FFE7BB] transition duration-700 bg-white/20 border border-white/15 text-white text-sm grid place-items-center w-fit h-10 px-5 rounded-3xl" >Book Now</Link>
+                  </div>
+                  {isFullyBooked(event) && (
+                    <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      Fully Booked
                     </div>
                   )}
                 </div>
@@ -317,20 +398,18 @@ export default function BookingOverviewPage() {
             ))}
           </div>
 
-          {filteredEvents.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-xl text-gray-600">No events found matching your criteria.</p>
-              <p className="text-gray-500 mt-2">Try adjusting your search or filter options.</p>
-            </div>
-          )}
+           {((activeFilter === "Bundles" && bundles.length === 0) ||
+             (activeFilter === "All Events" && filteredEvents.length === 0 && bundles.length === 0) ||
+             (activeFilter !== "All Events" && activeFilter !== "Bundles" && filteredEvents.length === 0)) && (
+             <div className="text-center py-16">
+               <p className="text-xl text-gray-600">No events or bundles found matching your criteria.</p>
+               <p className="text-gray-500 mt-2">Try adjusting your search or filter options.</p>
+             </div>
+           )}
         </div>
       </section>
 
-      <BundleModal
-        isOpen={isBundleModalOpen}
-        onClose={() => setIsBundleModalOpen(false)}
-        bundle={selectedBundle}
-      />
+
     </div>
   )
 }

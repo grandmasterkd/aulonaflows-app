@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profileError || !profile || profile.role !== 'admin') {
+    if (profileError || !profile || profile.role?.toLowerCase() !== 'admin') {
       return NextResponse.json(
         { error: 'Only admins can send invites' },
         { status: 403 }
@@ -60,39 +60,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create profile entry for the invited admin
-    const { error: profileInsertError } = await supabase
-      .from('profiles')
-      .insert({
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        role: 'admin',
-        account_status: 'active',
-        email_verified: false,
-        phone_verified: false,
-        marketing_consent: false,
-      })
+    // Send magic link to the invited admin with metadata
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
+        data: {
+          role: 'admin',
+          first_name: firstName,
+          last_name: lastName,
+          display_name: `${firstName} ${lastName}`
+        },
+      },
+    })
 
-    if (profileInsertError) {
-      console.error('Profile creation error:', profileInsertError)
-      return NextResponse.json(
-        { error: 'Failed to create admin profile' },
-        { status: 500 }
-      )
-    }
-
-    // Send magic link to the invited admin
-    const magicLinkResult = await authService.sendMagicLink(email, 'admin')
-
-    if (!magicLinkResult.success) {
-      console.error('Failed to send magic link:', magicLinkResult.error)
-      // Clean up the profile if magic link fails
-      await supabase
-        .from('profiles')
-        .delete()
-        .eq('email', email)
-
+    if (error) {
+      console.error('Failed to send magic link:', error)
       return NextResponse.json(
         { error: 'Failed to send invitation email' },
         { status: 500 }

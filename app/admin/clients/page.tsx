@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminNav } from "@/components/admin-nav"
+import { AdminPagination } from "@/components/admin-pagination"
 
 interface Client {
   name: string
@@ -33,7 +34,9 @@ interface ClientBooking {
 
 export default function AdminClientsPage() {
   const [clients, setClients] = useState<Client[]>([])
+  console.log("clis:",clients)
   const [filteredClients, setFilteredClients] = useState<Client[]>([])
+  console.log("fils:",filteredClients)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientBookings, setClientBookings] = useState<ClientBooking[]>([])
@@ -43,13 +46,16 @@ export default function AdminClientsPage() {
   const [adminRole, setAdminRole] = useState("")
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [newBookingsCount, setNewBookingsCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 10
   const router = useRouter()
 
   useEffect(() => {
     checkAuth()
-    fetchClients()
+    fetchClients(currentPage)
     fetchNewBookingsCount()
-  }, [])
+  }, [currentPage])
 
   useEffect(() => {
     const filtered = clients.filter((client) => {
@@ -82,13 +88,15 @@ export default function AdminClientsPage() {
     }
   }
 
-  const fetchClients = async () => {
+  const fetchClients = async (page: number = 1) => {
     const supabase = createClient()
+    const offset = (page - 1) * itemsPerPage
 
-    const { data: clientsData, error } = await supabase
+    const { data: clientsData, error, count } = await supabase
       .from("clients")
-      .select("*")
+      .select("*", { count: 'exact' })
       .order("date_joined", { ascending: false })
+      .range(offset, offset + itemsPerPage - 1)
 
     if (error) {
       console.error("Error fetching clients:", error)
@@ -98,6 +106,7 @@ export default function AdminClientsPage() {
 
     setClients(clientsData || [])
     setFilteredClients(clientsData || [])
+    setTotalItems(count || 0)
     setIsLoading(false)
   }
 
@@ -126,6 +135,7 @@ export default function AdminClientsPage() {
     const formattedBookings: ClientBooking[] = []
 
     bookings?.forEach((booking) => {
+     
       try {
         const events = booking.events as { name: string }[] | { name: string } | null | undefined
         const clientInfo = JSON.parse(booking.notes || "{}")
@@ -142,6 +152,7 @@ export default function AdminClientsPage() {
           })
         }
       } catch (e) {
+      
         console.error("Error parsing booking notes:", e)
       }
     })
@@ -271,9 +282,15 @@ export default function AdminClientsPage() {
                   </TableBody>
                 </Table>
               </div>
-            </section>
+             </section>
 
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+             <AdminPagination
+               currentPage={currentPage}
+               totalItems={totalItems}
+               itemsPerPage={itemsPerPage}
+             />
+
+             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Client Bookings - {selectedClient?.name}</DialogTitle>
