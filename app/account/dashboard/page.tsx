@@ -54,6 +54,7 @@ interface Credit {
 export default function AccountDashboard() {
   const [user, setUser] = useState<any>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
+  console.log("books:",bookings)
   const [allBookings, setAllBookings] = useState<Booking[]>([])
   const [credits, setCredits] = useState<Credit[]>([])
   const [creditBalance, setCreditBalance] = useState(0)
@@ -151,13 +152,13 @@ export default function AccountDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800 px-3 py-1"
       case "cancelled":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800 px-3 py-1"
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800 px-3 py-1"
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800 px-3 py-1"
     }
   }
 
@@ -217,16 +218,16 @@ export default function AccountDashboard() {
                 <p className="text-gray-600">Welcome back, {user?.first_name}!</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <Link href="/account/settings">
                 <Button variant="outline" size="sm">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
+                  <Settings className=" w-4 h-4 mr-0 md:mr-2" />
+                  <span className="hidden md:block">Settings</span>
                 </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                <LogOut className=" w-4 h-4 mr-0 md:mr-2" />
+                 <span className="hidden md:block">Logout</span>
               </Button>
             </div>
           </div>
@@ -284,7 +285,7 @@ export default function AccountDashboard() {
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Recent Bookings</h2>
               <Link href="/book">
-                <Button>
+                <Button className="bg-[#F7BA4C] w-fit h-auto rounded-lg p-3" >
                   <Plus className="w-4 h-4 mr-2" />
                   Book New Event
                 </Button>
@@ -309,18 +310,18 @@ export default function AccountDashboard() {
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
                               <h3 className="text-lg font-medium">
                                 {booking.bundle ? booking.bundle.name : (booking.events?.[0]?.name || 'Event')}
                               </h3>
-                              <Badge className={getStatusColor(booking.status)}>
+                              <Badge className={ `capitalize ${getStatusColor(booking.status)}`}>
                                 {booking.status}
                               </Badge>
-                              <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                              <Badge className={ `capitalize ${getPaymentStatusColor(booking.payment_status)}`}>
                                 {booking.payment_status}
                               </Badge>
                               {booking.bundle && (
-                                <Badge className="bg-purple-100 text-purple-800">
+                                <Badge className="bg-purple-100 text-purple-800 px-3 py-1">
                                   Bundle
                                 </Badge>
                               )}
@@ -343,7 +344,7 @@ export default function AccountDashboard() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Link href={`/account/bookings/${booking.id}`}>
+                          <Link className="hidden" href={`/account/bookings/${booking.id}`}>
                             <Button variant="outline" size="sm">View Details</Button>
                           </Link>
                             {booking.status === 'confirmed' && (
@@ -417,9 +418,9 @@ export default function AccountDashboard() {
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                <Card>
                  <CardHeader>
-                   <CardTitle>Profile Information</CardTitle>
+                   <CardTitle className="px-6" >Profile Information</CardTitle>
                  </CardHeader>
-                 <CardContent className="space-y-4">
+                 <CardContent className="px-6 space-y-4">
                    <div className="grid grid-cols-1 gap-4">
                      <div>
                        <label className="text-sm font-medium text-gray-600">Full Name</label>
@@ -458,9 +459,9 @@ export default function AccountDashboard() {
 
                <Card>
                  <CardHeader>
-                   <CardTitle>Account Summary</CardTitle>
+                   <CardTitle className="px-6" >Account Summary</CardTitle>
                  </CardHeader>
-                 <CardContent className="space-y-4">
+                 <CardContent className="px-6 space-y-4">
                    <div className="grid grid-cols-2 gap-4">
                      <div>
                        <label className="text-sm font-medium text-gray-600">Total Bookings</label>
@@ -481,8 +482,8 @@ export default function AccountDashboard() {
 
              <Card>
                <CardHeader>
-                 <div className="flex justify-between items-center">
-                   <CardTitle>Purchase History</CardTitle>
+                 <div className="px-6 flex flex-wrap grow-1 justify-between items-center gap-4">
+                   <CardTitle  >Purchase History</CardTitle>
                    <div className="flex gap-2">
                      <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                        <SelectTrigger className="w-24">
@@ -507,7 +508,7 @@ export default function AccountDashboard() {
                    </div>
                  </div>
                </CardHeader>
-               <CardContent>
+               <CardContent className="px-6" >
                  {getFilteredBookings().length === 0 ? (
                    <p className="text-gray-600 text-center py-8">No purchases found for {monthNames[selectedMonth]} {selectedYear}</p>
                  ) : (
@@ -535,7 +536,7 @@ export default function AccountDashboard() {
                               )}
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="hidden text-right">
                             <Link href={`/account/bookings/${booking.id}`}>
                               <Button variant="outline" size="sm">View Details</Button>
                             </Link>
