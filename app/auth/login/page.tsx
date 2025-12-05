@@ -166,7 +166,7 @@ export default function LoginPage() {
       </div>
 
       <div className="grid place-items-center h-screen w-full relative z-50">
-        <Card className="bg-transparent/50 backdrop-blur-sm border border-white/15 py-8 md:px-3 px-1 rounded-2xl h-auto w-[90%] md:w-[30%]" >
+        <Card className="bg-transparent/50 backdrop-blur-sm border border-white/15 py-8 px-7 rounded-2xl h-auto w-[90%] md:w-[30%]" >
           <CardHeader>
             <Image
               src="/aulonaflows-logo-white.svg"

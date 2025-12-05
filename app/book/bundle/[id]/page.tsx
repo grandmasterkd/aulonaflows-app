@@ -187,6 +187,7 @@ export default function BundleBookingPage() {
         body: JSON.stringify({
           bundleId: bundleId,
           bookingData: {
+            user_id: user?.id,
             name: formData.name,
             email: formData.email,
             phone: formData.phone,

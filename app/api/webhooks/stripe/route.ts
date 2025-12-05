@@ -278,18 +278,19 @@ export async function POST(request: NextRequest) {
       // Create payment record
       console.log("[v0] Creating payment record")
       const paymentData: any = {
+        name: customerName,
+        event: bundleId ? "Bundle Purchase" : eventData?.name || "Event Purchase",
+        date: new Date().toISOString(),
         amount: (session.amount_total || 0) / 100,
         payment_method: "card",
-        status: "paid",
-        transaction_id: session.payment_intent as string,
+        payment_status: "paid",
+        stripe_payment_intent_id: session.payment_intent as string,
+        stripe_session_id: session.id,
+        booking_id: bookings[0].id,
       }
 
       if (bundleId) {
         paymentData.bundle_id = bundleId
-        // For bundles, link to the first booking
-        paymentData.booking_id = bookings[0].id
-      } else {
-        paymentData.booking_id = bookings[0].id
       }
 
       const { data: payment, error: paymentError } = await supabase
