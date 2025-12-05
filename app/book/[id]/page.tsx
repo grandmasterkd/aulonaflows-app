@@ -44,6 +44,7 @@ export default function BookEventPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [event, setEvent] = useState<Event | null>(null)
+  console.log("eve",event)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)

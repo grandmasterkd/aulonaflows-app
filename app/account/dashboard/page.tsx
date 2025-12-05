@@ -30,10 +30,16 @@ interface Booking {
   status: string
   payment_status: string
   notes?: string
+  bundle_id?: string
   events?: Array<{
     name: string
     date_time: string
   }>
+  bundle?: {
+    id: string
+    name: string
+    description: string
+  }
 }
 
 interface Credit {
@@ -291,25 +297,37 @@ export default function AccountDashboard() {
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                           <div className="flex items-center gap-3 mb-2">
-                             <h3 className="text-lg font-medium">
-                               {booking.events?.[0]?.name || 'Event'}
-                             </h3>
-                             <Badge className={getStatusColor(booking.status)}>
-                               {booking.status}
-                             </Badge>
-                             <Badge className={getPaymentStatusColor(booking.payment_status)}>
-                               {booking.payment_status}
-                             </Badge>
-                           </div>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-medium">
+                                {booking.bundle ? booking.bundle.name : (booking.events?.[0]?.name || 'Event')}
+                              </h3>
+                              <Badge className={getStatusColor(booking.status)}>
+                                {booking.status}
+                              </Badge>
+                              <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                                {booking.payment_status}
+                              </Badge>
+                              {booking.bundle && (
+                                <Badge className="bg-purple-100 text-purple-800">
+                                  Bundle
+                                </Badge>
+                              )}
+                            </div>
 
-                           <div className="text-sm text-gray-600 space-y-1">
-                             <p>Booking ID: {booking.id}</p>
-                             <p>Date: {formatDate(booking.booking_date)}</p>
-                             {booking.events && booking.events.length > 0 && (
-                               <p>Event: {booking.events[0].name} - {formatDate(booking.events[0].date_time)}</p>
-                             )}
-                           </div>
+                            <div className="text-sm text-gray-600 space-y-1">
+                              <p>Booking ID: {booking.id}</p>
+                              <p>Date: {formatDate(booking.booking_date)}</p>
+                              {booking.bundle ? (
+                                <div>
+                                  <p>Bundle: {booking.bundle.name}</p>
+                                  <p>Events: {booking.events?.length || 0}</p>
+                                </div>
+                              ) : (
+                                booking.events && booking.events.length > 0 && (
+                                  <p>Event: {booking.events[0].name} - {formatDate(booking.events[0].date_time)}</p>
+                                )
+                              )}
+                            </div>
                         </div>
 
                         <div className="flex gap-2">
@@ -486,7 +504,7 @@ export default function AccountDashboard() {
                        <div key={booking.id} className="flex justify-between items-center p-4 border rounded-lg">
                           <div>
                             <h4 className="font-medium">
-                              {booking.events?.[0]?.name || 'Event'}
+                              {booking.bundle ? booking.bundle.name : (booking.events?.[0]?.name || 'Event')}
                             </h4>
                             <p className="text-sm text-gray-600">
                               {formatDate(booking.booking_date)} • ID: {booking.id}
@@ -498,6 +516,11 @@ export default function AccountDashboard() {
                               <Badge className={getPaymentStatusColor(booking.payment_status)}>
                                 {booking.payment_status}
                               </Badge>
+                              {booking.bundle && (
+                                <Badge className="bg-purple-100 text-purple-800">
+                                  Bundle
+                                </Badge>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">

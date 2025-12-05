@@ -231,6 +231,7 @@ export class BookingService {
           id,
           user_id,
           class_id,
+          bundle_id,
           booking_date,
           status,
           payment_status,
@@ -247,8 +248,42 @@ export class BookingService {
       }
 
       // Fetch event details for each booking
-      const bookingsWithEvents = await Promise.all((data || []).map(async (booking) => {
-        if (booking.class_id) {
+      const bookingsWithEvents = await Promise.all((data || []).map(async (booking: any) => {
+        if (booking.bundle_id) {
+          // For bundle bookings, get all events in the bundle
+          const { data: bundleData } = await this.supabase
+            .from('event_bundles')
+            .select(`
+              id,
+              name,
+              description,
+              bundle_events (
+                events (
+                  id,
+                  name,
+                  date_time,
+                  location,
+                  instructor_name
+                )
+              )
+            `)
+            .eq('id', booking.bundle_id)
+            .single()
+
+          if (bundleData) {
+            const events = bundleData.bundle_events?.map((be: any) => be.events) || []
+            return {
+              ...booking,
+              events,
+              bundle: {
+                id: bundleData.id,
+                name: bundleData.name,
+                description: bundleData.description
+              }
+            }
+          }
+        } else if (booking.class_id) {
+          // For single event bookings
           const { data: event } = await this.supabase
             .from('events')
             .select('id, name, date_time, location, instructor_name')
