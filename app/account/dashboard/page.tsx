@@ -558,7 +558,7 @@ export default function AccountDashboard() {
             onClick={(e) => e.stopPropagation()}
             className="relative bg-white rounded-3xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl transform transition-all duration-500 ease-out"
           >
-            <div className="sticky top-0 bg-white px-6 py-5 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-white px-6 pt-5 flex items-center justify-between z-10">
               <h3 className="headline-text text-xl md:text-2xl font-semibold text-[#654625]">Cancel Participation</h3>
               <button
                 onClick={() => setCancelModalOpen(false)}
@@ -571,7 +571,7 @@ export default function AccountDashboard() {
             <div className="px-6 py-4 pb-8">
               <div className="space-y-4">
                 <p className="text-gray-600">
-                  Are you sure you want to cancel your participation? This action cannot be undone.
+                This action cannot be undone, and as per the terms and conditions, No refunds will be issued once a booking is confirmed. Are you sure you want to cancel your participation? 
                 </p>
 
                 <div>
