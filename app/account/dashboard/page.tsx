@@ -17,7 +17,8 @@ import {
   Package,
   Filter,
   Download,
-  Eye
+  Eye,
+  X
 } from "lucide-react"
 import Image from "next/image"
 import { authService } from "@/lib/services/auth-service"
@@ -60,6 +61,9 @@ export default function AccountDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  const [cancelBookingId, setCancelBookingId] = useState<string | null>(null)
+  const [declineReason, setDeclineReason] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -98,10 +102,14 @@ export default function AccountDashboard() {
     router.push("/")
   }
 
-  const handleCancelBooking = async (bookingId: string) => {
-    if (!confirm("Are you sure you want to cancel this booking? This action cannot be undone.")) {
-      return
-    }
+  const handleCancelParticipation = (bookingId: string) => {
+    setCancelBookingId(bookingId)
+    setDeclineReason('')
+    setCancelModalOpen(true)
+  }
+
+  const confirmCancelParticipation = async () => {
+    if (!cancelBookingId) return
 
     try {
       const response = await fetch('/api/cancel-booking', {
@@ -109,7 +117,10 @@ export default function AccountDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ bookingId }),
+        body: JSON.stringify({
+          bookingId: cancelBookingId,
+          declineReason: declineReason.trim() || null
+        }),
       })
 
       const result = await response.json()
@@ -117,14 +128,15 @@ export default function AccountDashboard() {
       if (response.ok) {
         // Refresh dashboard data
         await loadDashboardData(user!.id)
-
-        alert(`Booking cancelled successfully. ${result.refundAmount > 0 ? `Refund of £${result.refundAmount} will be processed.` : ''} ${result.creditAmount > 0 ? `Credit of £${result.creditAmount} has been added to your account.` : ''}`)
+        setCancelModalOpen(false)
+        setCancelBookingId(null)
+        alert('Participation cancelled successfully. The organizers have been notified.')
       } else {
-        alert(`Failed to cancel booking: ${result.error}`)
+        alert(`Failed to cancel participation: ${result.error}`)
       }
     } catch (error) {
-      console.error("Cancel booking error:", error)
-      alert("An error occurred while cancelling the booking.")
+      console.error("Cancel participation error:", error)
+      alert("An error occurred while cancelling participation.")
     }
   }
 
@@ -339,10 +351,10 @@ export default function AccountDashboard() {
                                variant="outline"
                                size="sm"
                                className="text-red-600 hover:text-red-700"
-                               onClick={() => handleCancelBooking(booking.id)}
-                             >
-                               Cancel
-                             </Button>
+                                onClick={() => handleCancelParticipation(booking.id)}
+                              >
+                                Cancel Participation
+                              </Button>
                            )}
                         </div>
                       </div>
@@ -537,6 +549,64 @@ export default function AccountDashboard() {
            </TabsContent>
         </Tabs>
       </div>
+
+      {/* Cancel Participation Modal */}
+      {cancelModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setCancelModalOpen(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-white rounded-3xl w-full max-w-md max-h-[85vh] overflow-hidden shadow-2xl transform transition-all duration-500 ease-out"
+          >
+            <div className="sticky top-0 bg-white px-6 py-5 flex items-center justify-between z-10">
+              <h3 className="headline-text text-xl md:text-2xl font-semibold text-[#654625]">Cancel Participation</h3>
+              <button
+                onClick={() => setCancelModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+            <div className="px-6 py-4 pb-8">
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Are you sure you want to cancel your participation? This action cannot be undone.
+                </p>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for cancellation (optional)
+                  </label>
+                  <textarea
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    placeholder="Please provide a reason for cancelling your participation..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#654625] focus:border-transparent resize-none"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={() => setCancelModalOpen(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Keep Participation
+                  </Button>
+                  <Button
+                    onClick={confirmCancelParticipation}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Cancel Participation
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
