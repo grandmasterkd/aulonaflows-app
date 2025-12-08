@@ -119,7 +119,7 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data ->> 'first_name', ''),
     COALESCE(NEW.raw_user_meta_data ->> 'last_name', ''),
     NEW.email,
-    'admin'
+    'user'
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;

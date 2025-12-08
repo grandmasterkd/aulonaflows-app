@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { AdminNav } from "@/components/admin-nav"
+import { AdminPagination } from "@/components/admin-pagination"
 import Image from "next/image"
 
 interface Booking {
@@ -31,13 +32,16 @@ export default function AdminBookingsPage() {
   const [adminRole, setAdminRole] = useState("")
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [newBookingsCount, setNewBookingsCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 10
   const router = useRouter()
 
   useEffect(() => {
     checkAuth()
-    fetchBookings()
+    fetchBookings(currentPage)
     fetchNewBookingsCount()
-  }, [])
+  }, [currentPage])
 
   useEffect(() => {
     const filtered = bookings.filter((booking) => {
@@ -69,9 +73,10 @@ export default function AdminBookingsPage() {
     }
   }
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (page: number = 1) => {
     const supabase = createClient()
-    const { data, error } = await supabase
+    const offset = (page - 1) * itemsPerPage
+    const { data, error, count } = await supabase
       .from("bookings")
       .select(`
         *,
@@ -79,14 +84,16 @@ export default function AdminBookingsPage() {
           name,
           date_time
         )
-      `)
+      `, { count: 'exact' })
       .order("created_at", { ascending: false })
+      .range(offset, offset + itemsPerPage - 1)
 
     if (error) {
       console.error("Error fetching bookings:", error)
     } else {
       setBookings(data || [])
       setFilteredBookings(data || [])
+      setTotalItems(count || 0)
     }
     setIsLoading(false)
   }
@@ -211,12 +218,18 @@ export default function AdminBookingsPage() {
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
-              </div>
-            </section>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
+                 </Table>
+               </div>
+             </section>
+
+             <AdminPagination
+               currentPage={currentPage}
+               totalItems={totalItems}
+               itemsPerPage={itemsPerPage}
+             />
+           </div>
+         </div>
+       </main>
+     </div>
+   )
 }

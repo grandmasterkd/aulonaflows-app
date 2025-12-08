@@ -4,6 +4,7 @@ import { getUserWithProfile } from "@/lib/supabase/auth"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { DashboardContent } from "@/components/dashboard-content"
 import type { Metadata } from "next"
+import { toast } from "sonner"
 
 interface DashboardPageProps {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -17,9 +18,10 @@ export const metadata: Metadata = {
 export default async function AdminDashboardPage({ searchParams }: DashboardPageProps) {
   const supabase = await createClient()
 
-  const { user, profile } = await getUserWithProfile()
+  const { profile } = await getUserWithProfile()
 
-  if (!user || !profile) {
+  if (!profile || profile.role !== 'admin') {
+   
     redirect("/admin/login")
   }
 
@@ -28,7 +30,6 @@ export default async function AdminDashboardPage({ searchParams }: DashboardPage
   const selectedMonth = parseInt((searchParams.month as string) || new Date().getMonth().toString())
 
   const currentYear = new Date().getFullYear()
-  const currentMonth = new Date().getMonth()
   const selectedMonthStart = new Date(selectedYear, selectedMonth, 1).toISOString()
   const selectedMonthEnd = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59).toISOString()
   const selectedYearStart = `${selectedYear}-01-01`
@@ -144,9 +145,10 @@ export default async function AdminDashboardPage({ searchParams }: DashboardPage
   // Check if there's data for the selected month
   const hasMonthlyData = (monthlyBookingsCount || 0) > 0 || monthlyRevenue > 0 || (monthlyClientsCount || 0) > 0
 
-  const adminName = `${profile.first_name} ${profile.last_name} 👋`
-  const adminRole = profile.role
-  const profileImage = profile.image_url
+  const adminName = `${profile?.first_name} ${profile?.last_name} 👋`
+  const adminRole = profile?.role
+  const profileImage = profile?.image_url
+  
 
   return (
     <div className="flex h-screen bg-gray-100">

@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { PhoneInput } from "@/components/PhoneInput"
 import Link from "next/link"
 import { ArrowLeft, AlertCircle, X } from "lucide-react"
 import Image from "next/image"
+import type { User } from "@supabase/supabase-js"
 
 interface Event {
   id: string
@@ -31,6 +33,7 @@ interface BookingForm {
   name: string
   email: string
   phone: string
+  phoneValid: boolean
   has_health_conditions: boolean
   health_conditions: string
   agreed_to_terms: boolean
@@ -41,6 +44,8 @@ export default function BookEventPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [event, setEvent] = useState<Event | null>(null)
+  console.log("eve",event)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
@@ -48,21 +53,27 @@ export default function BookEventPage() {
     name: "",
     email: "",
     phone: "",
+    phoneValid: false,
     has_health_conditions: false,
     health_conditions: "",
     agreed_to_terms: false,
   })
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
 
+  // Check authentication on mount
   useEffect(() => {
-    if (params.id) {
+    checkAuthentication()
+  }, [])
+
+  useEffect(() => {
+    if (params.id && user) {
       fetchEvent(params.id as string)
     }
 
     if (searchParams.get("canceled") === "true") {
       setMessage({ type: "error", text: "Payment was cancelled. Please try again." })
     }
-  }, [params.id, searchParams])
+  }, [params.id, searchParams, user])
 
   useEffect(() => {
     if (message) {
@@ -72,6 +83,41 @@ export default function BookEventPage() {
       return () => clearTimeout(timer)
     }
   }, [message])
+
+  const checkAuthentication = async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      // Redirect to signup with return URL
+      const returnUrl = encodeURIComponent(`/book/${params.id}`)
+      router.push(`/auth/register?returnUrl=${returnUrl}`)
+      return
+    }
+
+    setUser(user)
+
+    // Optionally pre-fill form with user data
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, email, phone')
+      .eq('id', user.id)
+      .single()
+
+    if (profile) {
+      setBookingForm(prev => ({
+        ...prev,
+        name: `${profile.first_name} ${profile.last_name}`,
+        email: profile.email || user.email || "",
+        phone: profile.phone || "",
+      }))
+    } else {
+      setBookingForm(prev => ({
+        ...prev,
+        email: user.email || "",
+      }))
+    }
+  }
 
   const fetchEvent = async (eventId: string) => {
     const supabase = createClient()
@@ -97,9 +143,22 @@ export default function BookEventPage() {
     }))
   }
 
+  const handlePhoneChange = (phone: string, phoneValid: boolean) => {
+    setBookingForm((prev) => ({
+      ...prev,
+      phone,
+      phoneValid,
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!event) return
+
+    if (!bookingForm.phoneValid) {
+      setMessage({ type: "error", text: "Please enter a valid phone number." })
+      return
+    }
 
     if (!bookingForm.agreed_to_terms) {
       setMessage({ type: "error", text: "Please agree to the Terms and Conditions before proceeding." })
@@ -111,6 +170,7 @@ export default function BookEventPage() {
 
     try {
       const bookingData = {
+        user_id: user?.id,
         name: bookingForm.name,
         email: bookingForm.email,
         phone: bookingForm.phone,
@@ -292,13 +352,11 @@ export default function BookEventPage() {
 
                 <div>
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
+                  <PhoneInput
                     value={bookingForm.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    onChange={handlePhoneChange}
                     required
-                    className="bg-gray-200 h-14 border-none rounded-xl mt-1"
+                    className="mt-1"
                   />
                 </div>
 
