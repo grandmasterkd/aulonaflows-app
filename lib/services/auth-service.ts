@@ -241,7 +241,7 @@ export class AuthService {
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

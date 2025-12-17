@@ -10,7 +10,7 @@ const RESEND_API_KEY = process?.env?.RESEND_API_KEY
 
 export interface NotificationData {
   userId: string
-  type: 'booking_confirmation' | 'payment_success' | 'cancellation_confirmed' | 'refund_processed' | 'credit_issued' | 'credit_expiring' | 'bundle_modified' | 'event_reminder'
+  type: 'booking_confirmation' | 'payment_success' | 'cancellation_confirmed' | 'refund_processed' | 'credit_issued' | 'credit_expiring' | 'bundle_modified' | 'event_reminder' | 'event_update'
   subject: string
   content: string
   metadata?: Record<string, any>
@@ -517,6 +517,183 @@ AulonaFlows Team
     } catch (error) {
       console.error('Process notification queue error:', error)
       return { processed: 0, errors: 1 }
+    }
+  }
+
+  /**
+   * Generate email template for event update notifications
+   */
+  generateEventUpdateEmail(
+    event: any,
+    changes: Record<string, { old: any; new: any }>,
+    bookingReference: string
+  ): EmailTemplate {
+    const changeList = Object.entries(changes)
+      .map(([field, change]) => {
+        const fieldName = field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+        const oldValue = this.formatFieldValue(field, change.old)
+        const newValue = this.formatFieldValue(field, change.new)
+        return `${fieldName}: ${oldValue} → ${newValue}`
+      })
+      .join('\n')
+
+    const subject = `Event Update: ${event.name}`
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #654625;">Event Update Notification</h1>
+
+        <p>Important updates have been made to an event you have booked:</p>
+
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #654625;">${event.name}</h3>
+          <p><strong>Booking Reference:</strong> ${bookingReference}</p>
+        </div>
+
+        <h3>Changes Made:</h3>
+        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          ${changeList.split('\n').map(line => `<p style="margin: 5px 0;">${line}</p>`).join('')}
+        </div>
+
+        <div style="background: #e8f4fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h3 style="margin-top: 0;">Updated Event Details:</h3>
+          <p><strong>Date & Time:</strong> ${new Date(event.date_time).toLocaleDateString('en-GB', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}</p>
+          <p><strong>Location:</strong> ${event.location}</p>
+          <p><strong>Instructor:</strong> ${event.instructor_name}</p>
+          <p><strong>Price:</strong> £${event.price}</p>
+        </div>
+
+        <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #856404;">Important Information:</h3>
+          <ul>
+            <li>Please review the updated event details above</li>
+            <li>If you have any concerns about these changes, please contact us as soon as possible</li>
+            <li>Cancellation policy still applies - please refer to your booking confirmation</li>
+          </ul>
+        </div>
+
+        <p>If you need to make changes to your booking or have questions, please contact us.</p>
+
+        <p style="margin-top: 30px;">Thank you for your understanding.</p>
+        <p><strong>AulonaFlows Team</strong></p>
+      </div>
+    `
+
+    const textContent = `
+Event Update Notification
+
+Important updates have been made to an event you have booked.
+
+Event: ${event.name}
+Booking Reference: ${bookingReference}
+
+Changes Made:
+${changeList}
+
+Updated Event Details:
+Date & Time: ${new Date(event.date_time).toLocaleDateString('en-GB', {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+})}
+Location: ${event.location}
+Instructor: ${event.instructor_name}
+Price: £${event.price}
+
+Important Information:
+- Please review the updated event details above
+- If you have any concerns about these changes, please contact us as soon as possible
+- Cancellation policy still applies - please refer to your booking confirmation
+
+If you need to make changes to your booking or have questions, please contact us.
+
+Thank you for your understanding.
+AulonaFlows Team
+    `.trim()
+
+    return { subject, htmlContent, textContent }
+  }
+
+  /**
+   * Send event update notification
+   */
+  async sendEventUpdateNotification(
+    userIdentifier: string,
+    event: any,
+    changes: Record<string, { old: any; new: any }>,
+    bookingReference: string
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      // Determine if userIdentifier is userId or email
+      let userId: string
+      let email: string
+
+      // Check if it's a UUID (userId) or email
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      if (uuidRegex.test(userIdentifier)) {
+        userId = userIdentifier
+        // Get email from profiles
+        const { data: profile, error: profileError } = await this.supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', userId)
+          .single()
+
+        if (profileError || !profile) {
+          return { success: false, error: 'User not found' }
+        }
+        email = profile.email
+      } else {
+        email = userIdentifier
+        userId = userIdentifier // For guest users, use email as identifier
+      }
+
+      const template = this.generateEventUpdateEmail(event, changes, bookingReference)
+
+      return this.sendNotification({
+        userId,
+        type: 'event_update',
+        subject: template.subject,
+        content: template.htmlContent,
+        metadata: { eventId: event.id, changes, bookingReference },
+        priority: 4 // High priority
+      })
+    } catch (error) {
+      console.error('Send event update notification error:', error)
+      return { success: false, error: 'An unexpected error occurred' }
+    }
+  }
+
+  /**
+   * Helper method to format field values for display
+   */
+  private formatFieldValue(field: string, value: any): string {
+    if (value === null || value === undefined) return 'Not set'
+
+    switch (field) {
+      case 'date_time':
+        return new Date(value).toLocaleDateString('en-GB', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      case 'price':
+        return `£${value}`
+      default:
+        return String(value)
     }
   }
 }
