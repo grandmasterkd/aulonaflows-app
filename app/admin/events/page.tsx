@@ -189,9 +189,30 @@ export default function AdminEventsPage() {
     }
 
     let error
+    let notificationsSent = false
+
     if (editingEvent) {
-      const { error: updateError } = await supabase.from("events").update(eventData).eq("id", editingEvent.id)
-      error = updateError
+      // Use the new API endpoint for updates
+      try {
+        const response = await fetch(`/api/admin/events/${editingEvent.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(eventData),
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) {
+          error = result.error || 'Failed to update event'
+        } else {
+          notificationsSent = result.notificationsSent
+        }
+      } catch (fetchError) {
+        error = 'Failed to update event'
+        console.error('Fetch error:', fetchError)
+      }
     } else {
       const { error: insertError } = await supabase.from("events").insert([eventData])
       error = insertError
@@ -204,9 +225,13 @@ export default function AdminEventsPage() {
         text: "Failed to save event. Please try again.",
       })
     } else {
+      const successMessage = editingEvent
+        ? `Event updated successfully.${notificationsSent ? ' Notifications sent to booked users.' : ''}`
+        : 'Event created successfully.'
+
       setMessage({
         type: "success",
-        text: `Event ${editingEvent ? "updated" : "created"} successfully.`,
+        text: successMessage,
       })
       setIsDialogOpen(false)
       setEditingEvent(null)
