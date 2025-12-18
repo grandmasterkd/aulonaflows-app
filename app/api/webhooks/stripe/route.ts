@@ -10,41 +10,41 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(request: NextRequest) {
-  console.log("[v0] Webhook received at:", new Date().toISOString())
+  console.log(" Webhook received at:", new Date().toISOString())
 
   try {
     const body = await request.text()
     const signature = request.headers.get("stripe-signature")!
 
-    console.log("[v0] Webhook body length:", body.length)
-    console.log("[v0] Webhook signature present:", !!signature)
+    console.log("Webhook body length:", body.length)
+    console.log("Webhook signature present:", !!signature)
 
     let event: Stripe.Event
 
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
-      console.log("[v0] Webhook event constructed successfully:", event.type)
+      console.log("Webhook event constructed successfully:", event.type)
     } catch (err) {
-      console.error("[v0] Webhook signature verification failed:", err)
+      console.error("Webhook signature verification failed:", err)
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
     }
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-    console.log("[v0] Supabase client created")
+    console.log(" Supabase client created")
 
     if (event.type === "checkout.session.completed") {
-      console.log("[v0] Processing checkout.session.completed event")
+      console.log(" Processing checkout.session.completed event")
       const session = event.data.object as Stripe.Checkout.Session
 
-      console.log("[v0] Session ID:", session.id)
-      console.log("[v0] Session metadata:", session.metadata)
-      console.log("[v0] Session amount:", session.amount_total)
+      console.log(" Session ID:", session.id)
+      console.log(" Session metadata:", session.metadata)
+      console.log(" Session amount:", session.amount_total)
 
       let bookingData: any = {}
       try {
         bookingData = session.metadata?.notes ? JSON.parse(session.metadata.notes) : {}
       } catch (parseError) {
-        console.error("[v0] Error parsing booking data:", parseError)
+        console.error(" Error parsing booking data:", parseError)
         bookingData = {}
       }
 
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
       const specialRequirements = bookingData.notes || ""
       const userId = bookingData.user_id || null
 
-      console.log("[v0] Customer data:", { customerEmail, customerName, customerPhone })
+      console.log(" Customer data:", { customerEmail, customerName, customerPhone })
 
       if (customerEmail) {
-        console.log("[v0] Checking for existing client with email:", customerEmail)
+        console.log(" Checking for existing client with email:", customerEmail)
         const { data: existingClient, error: clientCheckError } = await supabase
           .from("clients")
           .select("id, booking_count")
@@ -65,12 +65,12 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (clientCheckError && clientCheckError.code !== "PGRST116") {
-          console.error("[v0] Unexpected client check error:", clientCheckError)
+          console.error(" Unexpected client check error:", clientCheckError)
         }
-        console.log("[v0] Existing client:", existingClient)
+        console.log(" Existing client:", existingClient)
 
         if (!existingClient) {
-          console.log("[v0] Creating new client")
+          console.log(" Creating new client")
           const { data: newClient, error: newClientError } = await supabase
             .from("clients")
             .insert({
@@ -84,13 +84,13 @@ export async function POST(request: NextRequest) {
             .single()
 
           if (newClientError) {
-            console.error("[v0] Error creating new client:", newClientError)
+            console.error(" Error creating new client:", newClientError)
             return NextResponse.json({ error: "Failed to create client" }, { status: 500 })
           } else {
-            console.log("[v0] New client created:", newClient)
+            console.log(" New client created:", newClient)
           }
         } else {
-          console.log("[v0] Updating existing client booking count")
+          console.log(" Updating existing client booking count")
           const { data: updatedClient, error: updateError } = await supabase
             .from("clients")
             .update({ booking_count: existingClient.booking_count + 1 })
@@ -99,10 +99,10 @@ export async function POST(request: NextRequest) {
             .single()
 
           if (updateError) {
-            console.error("[v0] Error updating client:", updateError)
+            console.error(" Error updating client:", updateError)
             return NextResponse.json({ error: "Failed to update client" }, { status: 500 })
           } else {
-            console.log("[v0] Client updated:", updatedClient)
+            console.log(" Client updated:", updatedClient)
           }
         }
       }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       const bundleId = session.metadata?.bundleId
 
       if (!eventId && !bundleId) {
-        console.error("[v0] No eventId or bundleId found in session metadata")
+        console.error(" No eventId or bundleId found in session metadata")
         return NextResponse.json({ error: "Missing event or bundle ID" }, { status: 500 })
       }
 
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
 
       if (bundleId) {
         // Handle bundle booking
-        console.log("[v0] Processing bundle booking for bundleId:", bundleId)
+        console.log(" Processing bundle booking for bundleId:", bundleId)
 
         // Fetch bundle with events
         const { data: bundle, error: bundleError } = await supabase
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (bundleError || !bundle) {
-          console.error("[v0] Bundle not found:", bundleError)
+          console.error(" Bundle not found:", bundleError)
           return NextResponse.json({ error: "Bundle not found" }, { status: 500 })
         }
 
@@ -155,14 +155,14 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (existingBundleBooking) {
-          console.log("[v0] Bundle booking already exists")
+          console.log(" Bundle booking already exists")
           return NextResponse.json({ error: "Bundle already booked" }, { status: 400 })
         }
 
         // Create bookings for each event in the bundle
         for (const bundleEvent of bundle.bundle_events) {
           const event = bundleEvent.events
-          console.log("[v0] Creating booking for event:", event.id)
+          console.log(" Creating booking for event:", event.id)
 
           const { data: newBooking, error: bookingError } = await supabase
             .from("bookings")
@@ -179,7 +179,7 @@ export async function POST(request: NextRequest) {
             .single()
 
           if (bookingError) {
-            console.error("[v0] Error creating booking for event", event.id, ":", bookingError)
+            console.error(" Error creating booking for event", event.id, ":", bookingError)
             return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
           }
 
@@ -198,14 +198,14 @@ export async function POST(request: NextRequest) {
             .eq("id", event.id)
 
           if (eventUpdateError) {
-            console.error("[v0] Error updating event booking count for", event.id, ":", eventUpdateError)
+            console.error(" Error updating event booking count for", event.id, ":", eventUpdateError)
           }
         }
 
         eventData = { name: bundle.name }
       } else {
         // Handle single event booking
-        console.log("[v0] Processing single event booking for eventId:", eventId)
+        console.log(" Processing single event booking for eventId:", eventId)
 
         // Check for existing booking to prevent duplicates
         const { data: existingBooking } = await supabase
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
 
         let booking
         if (existingBooking) {
-          console.log("[v0] Booking already exists, using existing booking")
+          console.log(" Booking already exists, using existing booking")
           booking = existingBooking
         } else {
           const { data: newBooking, error: bookingError } = await supabase
@@ -234,17 +234,17 @@ export async function POST(request: NextRequest) {
             .single()
 
           if (bookingError) {
-            console.error("[v0] Error creating booking:", bookingError)
+            console.error(" Error creating booking:", bookingError)
             return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
           }
 
-          console.log("[v0] Booking created:", newBooking)
+          console.log(" Booking created:", newBooking)
           booking = newBooking
         }
 
         bookings.push(booking)
 
-        console.log("[v0] Updating event booking count")
+        console.log(" Updating event booking count")
         const { error: eventUpdateError } = await supabase
           .from("events")
           .update({
@@ -257,11 +257,11 @@ export async function POST(request: NextRequest) {
           .eq("id", eventId)
 
         if (eventUpdateError) {
-          console.error("[v0] Error updating event booking count:", eventUpdateError)
+          console.error(" Error updating event booking count:", eventUpdateError)
         }
 
         // Get event data
-        console.log("[v0] Fetching event data for ID:", eventId)
+        console.log(" Fetching event data for ID:", eventId)
         const { data: event, error: eventError } = await supabase
           .from("events")
           .select("name")
@@ -269,14 +269,14 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (eventError) {
-          console.error("[v0] Error fetching event:", eventError)
+          console.error(" Error fetching event:", eventError)
         }
-        console.log("[v0] Event data:", event)
+        console.log(" Event data:", event)
         eventData = event
       }
 
       // Create payment record
-      console.log("[v0] Creating payment record")
+      
       const paymentData: any = {
         name: customerName,
         event: bundleId ? "Bundle Purchase" : eventData?.name || "Event Purchase",
@@ -288,6 +288,7 @@ export async function POST(request: NextRequest) {
         stripe_session_id: session.id,
         booking_id: bookings[0].id,
       }
+      console.log(" Creating payment record",paymentData)
 
       if (bundleId) {
         paymentData.bundle_id = bundleId
@@ -300,14 +301,16 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (paymentError) {
-        console.error("[v0] Error creating payment record:", paymentError)
+        console.error(" Error creating payment record:", paymentError)
         return NextResponse.json({ error: "Failed to create payment record" }, { status: 500 })
       } else {
-        console.log("[v0] Payment record created:", payment)
+        console.log(" Payment record created:", payment)
       }
 
-      if (customerEmail && eventData?.name) {
-        console.log("[v0] Sending confirmation email to:", customerEmail)
+      //customerEmail && eventData?.name
+      if (eventData) {
+        console.log("event:",eventData)
+        console.log(" Sending confirmation email to:", customerEmail)
         const emailResult = await sendBookingConfirmationEmail({
           customerName,
           customerEmail,
@@ -320,18 +323,18 @@ export async function POST(request: NextRequest) {
         console.log("emailresult:",emailResult)
 
         if (emailResult.success) {
-          console.log("[v0] Confirmation email sent successfully")
+          console.log(" Confirmation email sent successfully")
         } else {
-          console.error("[v0] Failed to send confirmation email:", emailResult.error)
+          console.error(" Failed to send confirmation email:", emailResult.error)
           // Don't fail the webhook if email fails - booking is still valid
         }
       }
 
-      console.log("[v0] Payment processing completed successfully for session:", session.id)
+      console.log(" Payment processing completed successfully for session:", session.id)
     }
 
     if (event.type === "payment_intent.payment_failed") {
-      console.log("[v0] Processing payment_intent.payment_failed event")
+      console.log(" Processing payment_intent.payment_failed event")
       const paymentIntent = event.data.object as Stripe.PaymentIntent
 
       // Record failed payment
@@ -347,18 +350,18 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (paymentError) {
-        console.error("[v0] Error recording failed payment:", paymentError)
+        console.error(" Error recording failed payment:", paymentError)
       } else {
-        console.log("[v0] Failed payment recorded:", failedPayment)
+        console.log(" Failed payment recorded:", failedPayment)
       }
 
-      console.log("[v0] Payment failed processing completed for intent:", paymentIntent.id)
+      console.log(" Payment failed processing completed for intent:", paymentIntent.id)
     }
 
-    console.log("[v0] Webhook processing completed successfully")
+    console.log(" Webhook processing completed successfully")
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("[v0] Webhook error:", error)
+    console.error(" Webhook error:", error)
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 })
   }
 }

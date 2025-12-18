@@ -94,14 +94,14 @@ export async function sendBookingConfirmationEmail({
     })
 
     if (error) {
-      console.error("[v0] Email sending error:", error)
+      console.error(" Email sending error:", error)
       return { success: false, error }
     }
 
-    console.log("[v0] Email sent successfully:", data)
+    console.log(" Email sent successfully:", data)
     return { success: true, data }
   } catch (error) {
-    console.error("[v0] Email sending failed:", error)
+    console.error(" Email sending failed:", error)
     return { success: false, error }
   }
 }
@@ -206,14 +206,14 @@ export async function sendAdminCancellationEmail({
     })
 
     if (error) {
-      console.error("[v0] Admin cancellation email error:", error)
+      console.error(" Admin cancellation email error:", error)
       return { success: false, error }
     }
 
-    console.log("[v0] Admin cancellation email sent successfully:", data)
+    console.log(" Admin cancellation email sent successfully:", data)
     return { success: true, data }
   } catch (error) {
-    console.error("[v0] Admin cancellation email failed:", error)
+    console.error(" Admin cancellation email failed:", error)
     return { success: false, error }
   }
 }
