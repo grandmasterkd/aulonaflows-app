@@ -37,11 +37,14 @@ export default function AuthCallbackPage() {
         return
       }
 
-      // Check for tokens in URL (for manual session establishment)
-      const accessToken = searchParams.get('access_token')
-      const refreshToken = searchParams.get('refresh_token')
+      // Check for tokens in URL hash (for magic links)
+      const hash = typeof window !== 'undefined' ? window.location.hash.substring(1) : ''
+      const hashParams = new URLSearchParams(hash)
+      const accessToken = hashParams.get('access_token')
+      const refreshToken = hashParams.get('refresh_token')
+      const type = hashParams.get('type')
 
-      if (accessToken && refreshToken) {
+      if (accessToken && refreshToken && type === 'magiclink') {
         // Manually set the session
         const supabase = createClient()
         const { error: sessionError } = await supabase.auth.setSession({
