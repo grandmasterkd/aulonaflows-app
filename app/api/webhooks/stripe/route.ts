@@ -308,7 +308,7 @@ export async function POST(request: NextRequest) {
       }
 
       //customerEmail && eventData?.name
-      if (eventData) {
+      // if (eventData) {
         console.log("event:",eventData)
         console.log(" Sending confirmation email to:", customerEmail)
         const emailResult = await sendBookingConfirmationEmail({
@@ -328,7 +328,7 @@ export async function POST(request: NextRequest) {
           console.error(" Failed to send confirmation email:", emailResult.error)
           // Don't fail the webhook if email fails - booking is still valid
         }
-      }
+      // }
 
       console.log(" Payment processing completed successfully for session:", session.id)
     }
