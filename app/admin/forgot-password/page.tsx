@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
       {/* Left Column - Image */}
       <div className="hidden md:flex md:w-1/2 bg-gray-100">
         <Image
-          src="/serene-yoga-studio-with-natural-lighting-and-plant.jpg"
+          src="/services-temp-1.webp"
           alt="Serene yoga studio"
           width={800}
           height={600}

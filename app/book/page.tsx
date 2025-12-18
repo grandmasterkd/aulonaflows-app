@@ -170,7 +170,7 @@ export default function BookingOverviewPage() {
             {/* Right Column */}
             <div className="aspect-[4/3] bg-gray-200 rounded-3xl overflow-hidden">
               <Image
-                src="/services-temp-2.jpg"
+                src="/aulona-bookings.webp"
                 alt="Previous yoga events"
                 width={600}
                 height={400}
@@ -211,10 +211,14 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src="/aulona-yoga-services.jpeg" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src="/aulona-yoga-services.webp" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
+                      <div className="absolute top-5 left-5 z-50" >
+                    <span className="bg-gradient-to-tr from-[#E3C9A3] to-[#57463B] backdrop-blur-sm border border-white/50 text-[#FFF0D8] font-medium rounded-full w-fit px-4 py-2 text-xs" >Bundle </span> 
+                    </div>
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >
+                    
                     <h3 className="text-xl text-white font-medium">{bundle.name}</h3>
                     <p className="text-xs text-gray-200">
                        {bundle.events.length} Events • Save {bundle.discount_percentage}%
@@ -307,8 +311,11 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src="/aulona-yoga-services.jpeg" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src="/aulona-yoga-services.webp" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
+                   <div className="absolute top-5 left-5 z-50" >
+                    <span className="bg-gradient-to-tr from-[#E3C9A3] to-[#57463B] backdrop-blur-sm border border-white/50 text-[#FFF0D8] font-medium rounded-full w-fit px-4 py-2 text-xs" >Bundle </span> 
+                    </div>
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >
                     <h3 className="text-xl text-white font-medium">{bundle.name}</h3>

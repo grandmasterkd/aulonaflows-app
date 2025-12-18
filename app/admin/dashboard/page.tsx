@@ -145,7 +145,7 @@ export default async function AdminDashboardPage({ searchParams }: DashboardPage
   // Check if there's data for the selected month
   const hasMonthlyData = (monthlyBookingsCount || 0) > 0 || monthlyRevenue > 0 || (monthlyClientsCount || 0) > 0
 
-  const adminName = `${profile?.first_name} ${profile?.last_name} 👋`
+  const adminName = `${profile?.first_name} 👋`
   const adminRole = profile?.role
   const profileImage = profile?.image_url
   

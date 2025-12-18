@@ -1,70 +1,76 @@
 import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle } from "lucide-react"
+import { Card, CardContent} from "@/components/ui/card"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 async function PaymentSuccessContent({ sessionId, paymentIntentId }: { sessionId?: string; paymentIntentId?: string }) {
   const supabase = await createClient()
 
   let payment = null
+  let currentUser = null
   if (sessionId) {
     // Get payment details for checkout
     const { data } = await supabase.from("payments").select("*").eq("stripe_session_id", sessionId).single()
     payment = data
+
+    const { data: user } = await supabase.from("profiles").select("*").single()
+    if (!user) {
+      return <div>User not found</div>
+    }
+
+    currentUser = user
   } else if (paymentIntentId) {
     // For Apple Pay, we can fetch from Stripe or show generic
     // Since we don't store in payments table, show basic success
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+    <main className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-[#F5F5F5] w-full max-w-md p-7 md:p-10 rounded-3xl">
+          <div className="text-left space-y-1">
+          <Image src="/aulonaflows-logo-dark.svg" alt="aulona-flows-logo" width={40} height={40} className="aspect-auto object-contain" />
+           <h3 className="text-2xl font-medium tracking-tighter">Payment Successful!</h3>
+           <p className="text-xs text-black/50" > Hello {`${ currentUser?.first_name + " " + currentUser?.last_name }`}, thank you for your booking. Your payment has been processed successfully. </p>
           </div>
-          <CardTitle className="text-2xl text-green-600">Payment Successful!</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center text-gray-600">
-            <p>Thank you for your booking. Your payment has been processed successfully.</p>
-          </div>
-
+          
           {payment && (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="font-medium">Amount:</span>
-                <span>£{payment.amount}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Status:</span>
-                <span className="capitalize text-green-600">{payment.payment_status}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Date:</span>
-                <span>{new Date(payment.date).toLocaleDateString()}</span>
-              </div>
-            </div>
+            <div className="py-8 flex flex-wrap gap-4 items-start justify-between" >
+              <ul className="text-base font-medium space-y-1" >
+                <li>Event Booked</li>
+                <li>Booking Date</li>
+                <li>Booking Status</li>
+                <li>Amount Paid</li>
+              </ul>
+
+              <ul className="text-base font-medium text-black/50 capitalize space-y-1" >
+                <li>{payment?.event}</li>
+                <li>{new Date(payment.date).toLocaleDateString()}</li>
+                <li>{payment.payment_status}</li>
+                <li>£{payment.amount}</li>
+              </ul>
+            </div> 
           )}
 
-          <div className="pt-4 space-y-2">
-            <p className="text-sm text-gray-600">
-              A confirmation email has been sent to your email address with booking details.
+          <div>
+            <hr className="text-black/20"/>
+            <p className="pt-1 text-xs text-gray-600">
+             A confirmation email has been sent to your email address with the event details 
             </p>
-            <div className="flex gap-2">
-              <Button asChild className="flex-1">
-                <Link href="/">Return Home</Link>
-              </Button>
-              <Button asChild variant="outline" className="flex-1 bg-transparent">
-                <Link href="/book">View Events</Link>
-              </Button>
-            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          
+
+          <div className="w-full pt-5 flex flex-wrap gap-2">
+            <button className="bg-[#E3C9A3] hover:bg-opacity-50 transition-all ease-linear duration-300 rounded-lg px-2 h-12 flex-1 font-medium text-sm whitespace-nowrap">
+                <Link href="/book">Back to Events</Link>
+            </button>
+            <button className="flex-1 rounded-lg px-2 h-12 bg-[#F7BA4C] hover:bg-opacity-50 transition-all ease-linear duration-300 font-medium text-sm whitespace-nowrap">
+                <Link href="/">Done</Link>
+            </button>
+          </div>
+      </div>
+    </main>
   )
 }
 
