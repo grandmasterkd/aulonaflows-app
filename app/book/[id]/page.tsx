@@ -44,7 +44,6 @@ export default function BookEventPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [event, setEvent] = useState<Event | null>(null)
-  console.log("eve",event)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -243,7 +242,7 @@ export default function BookEventPage() {
   }
 
   return (
-    <main className="relative min-h-screen w-full grid place-items-center px-8 md:px-[16rem] lg:px-[21rem] py-12">
+    <main className="relative min-h-screen w-full grid place-items-center px-8 md:px-24 lg:px-36 py-12">
     
         {/* Back Button */}
         <div className="w-full" >

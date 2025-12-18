@@ -258,7 +258,7 @@ export default function BundleBookingPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <section className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-24 lg:px-0 py-6">
           <Link href="/book" className="inline-flex items-center gap-2 text-[#654625] hover:text-[#4a3319] mb-4">
             <ArrowLeft size={20} />
             Back to Events
@@ -270,7 +270,7 @@ export default function BundleBookingPage() {
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto px-0 py-8">
+      <div className="max-w-4xl mx-auto px-8 md:px-24 lg:px-0 py-8">
         <div className="grid grid-cols-1 gap-y-8">
           {/* Bundle Details */}
           <div className="space-y-6">      

@@ -317,6 +317,8 @@ export async function POST(request: NextRequest) {
           specialRequirements: specialRequirements || undefined,
         })
 
+        console.log("emailresult:",emailResult)
+
         if (emailResult.success) {
           console.log("[v0] Confirmation email sent successfully")
         } else {

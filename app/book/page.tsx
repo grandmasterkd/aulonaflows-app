@@ -145,23 +145,23 @@ export default function BookingOverviewPage() {
       {/* Hero Section */}
       
 
-      <section className="py-20 px-8 md:px-36">
+      <section className="py-20 px-8 md:px-24 lg:px-36">
 
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-start">
             {/* Left Column */}
             <div className="space-y-4 md:space-y-6">
               <Link href="/" className="inline-flex items-center gap-2 text-[#654625] hover:text-[#4a3319] mb-6">
                 <ArrowLeft size={20} />
                 Back
               </Link>
-              <h1 className="headline-text max-w-md leading-normal md:leading-normal text-4xl md:text-5xl font-bold">Begin Your Journey Inward Today</h1>
+              <h1 className="headline-text max-w-lg lg:max-w-md leading-normal md:leading-normal text-4xl md:text-5xl font-bold">Begin Your Journey Inward Today</h1>
               <div className="relative">
                 <Input
                   placeholder="Search for classes, workshops, or events..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-none bg-gray-100 rounded-full w-full md:w-[80%] h-14 text-base indent-10"
+                  className="border-none bg-gray-100 rounded-full w-full lg:w-[80%] h-14 text-base indent-10"
                 />
                 <Search className="size-5 absolute left-6 top-4" />
               </div>
@@ -182,7 +182,7 @@ export default function BookingOverviewPage() {
       </section>
 
       {/* Body Section */}
-      <section className="pb-8 md:pb-0 py-0 md:py-16 px-8 md:px-36">
+      <section className="pb-8 md:pb-0 py-0 md:py-16 px-8 md:px-24 lg:px-36">
         <div className="max-w-7xl mx-auto space-y-8 md:space-y-12">
           {/* Filter Toggle */}
           <div className="flex justify-center">
@@ -202,7 +202,7 @@ export default function BookingOverviewPage() {
           </div>
 
           {/* Events Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-0 md:pb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-0 md:pb-12">
             {activeFilter === "Bundles" ? bundles.map((bundle) => (
               <div
                 key={bundle.id}
