@@ -170,7 +170,7 @@ export default function BookingOverviewPage() {
             {/* Right Column */}
             <div className="aspect-[4/3] bg-gray-200 rounded-3xl overflow-hidden">
               <Image
-                src="/services-temp-2.jpg"
+                src="/aulona-bookings.webp"
                 alt="Previous yoga events"
                 width={600}
                 height={400}
@@ -211,7 +211,7 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src="/aulona-yoga-services.jpeg" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src="/aulona-yoga-services.webp" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >
@@ -307,7 +307,7 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src="/aulona-yoga-services.jpeg" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src="/aulona-yoga-services.webp" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >

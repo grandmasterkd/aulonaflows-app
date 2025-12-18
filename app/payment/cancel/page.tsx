@@ -1,36 +1,29 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { XCircle } from "lucide-react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export default function PaymentCancelPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-            <XCircle className="h-6 w-6 text-red-600" />
+ 
+    <main className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-[#F5F5F5] w-full max-w-md p-7 md:p-10 rounded-3xl">
+          <div className="text-left space-y-1">
+          <Image src="/aulonaflows-logo-dark.svg" alt="aulona-flows-logo" width={40} height={40} className="aspect-auto object-contain" />
+           <h3 className="text-2xl font-medium text-red-400 tracking-tighter">Payment Cancelled</h3>
+           <p className="text-xs text-black/50" > Your payment was cancelled. No charges have been made to your account. </p>
           </div>
-          <CardTitle className="text-2xl text-red-600">Payment Cancelled</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-center text-gray-600">
-            <p>Your payment was cancelled. No charges have been made to your account.</p>
-          </div>
-
-          <div className="pt-4 space-y-2">
-            <p className="text-sm text-gray-600">You can try booking again or browse other available events.</p>
-            <div className="flex gap-2">
-              <Button asChild className="flex-1">
+  
+          <div className="w-full pt-5 flex flex-wrap gap-2">
+            <button className="bg-[#E3C9A3] hover:bg-opacity-50 transition-all ease-linear duration-300 rounded-lg px-2 h-12 flex-1 font-medium text-sm whitespace-nowrap">
                 <Link href="/book">Try Again</Link>
-              </Button>
-              <Button asChild variant="outline" className="flex-1 bg-transparent">
-                <Link href="/">Return Home</Link>
-              </Button>
-            </div>
+            </button>
+            <button className="flex-1 rounded-lg px-2 h-12 bg-[#F7BA4C] hover:bg-opacity-50 transition-all ease-linear duration-300 font-medium text-sm whitespace-nowrap">
+                <Link href="/">Home</Link>
+            </button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+      </div>
+    </main>
+
+    
+ 
   )
 }
