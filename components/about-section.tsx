@@ -9,7 +9,7 @@ import Markdown from "./ui/markdown"
 
 const aboutContent = [
   {
-    title: "Hello!\nI'm Aulona",
+    title: "Hello!\n\nI'm Aulona",
     content: `
 I’m a yoga teacher and sound therapist, but to me, it’s so much more than a title. 
 
@@ -198,7 +198,10 @@ export function AboutSection() {
                   isVisible && !isTransitioning ? "opacity-100 translate-x-0 scale-100" : "opacity-0 -translate-x-10 scale-95"
                 }`}
               >
-                <h2 className="headline-text text-2xl md:text-4xl font-semibold whitespace-pre-line leading-[2px]">{aboutContent[0].title}</h2>
+                <div>
+                  <h2 className="headline-text text-2xl md:text-4xl font-semibold whitespace-pre-line leading-5 md:leading-7  ">{aboutContent[0].title ? aboutContent[0].title : "" }</h2>
+                  {/* <h2 className="headline-text text-2xl md:text-4xl font-semibold whitespace-none ">{aboutContent[0].title ? aboutContent[0].title.split(" ")[1] : "" }</h2> */}
+                 </div>
                 <div className="md:hidden">
                   <div className="line-clamp-3">
                     <Markdown content={aboutContent[0].content} />

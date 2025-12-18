@@ -13,7 +13,7 @@ const services = [
     title: "Yoga Classes",
     description:
       "From grounding Hatha inspired flows to slow, mindful movement, my classes invite you to reconnect with your body and breath. Each session is designed to help you release tension, build gentle strength, and find stillness within. You’re encouraged to flow at your own pace, honouring what feels right for you in each moment. All levels are welcome.",
-    image: "/services-temp-2.webp",
+    image: "/aulona-yoga-services.webp",
   },
   {
     title: "Sound Therapy",
