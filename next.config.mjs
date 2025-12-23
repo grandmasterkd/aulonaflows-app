@@ -37,17 +37,40 @@ const nextConfig = {
         source: '/(.*)',
         headers: [
          {
-          key: 'Content-Security-Policy',
-          value: `
-            default-src 'self';
-            script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://m.stripe.com;
-            style-src 'self' 'unsafe-inline';
-            connect-src 'self' https://api.stripe.com https://m.stripe.network https://m.stripe.com https://stripe.com;
-            frame-src 'self' https://js.stripe.com https://m.stripe.com https://hooks.stripe.com;
-            img-src 'self' data: https://*.stripe.com https://stripe.com;
-          `.replace(/\s{2,}/g, ' ').trim(),
-        }
-
+  key: 'Content-Security-Policy',
+  value: `
+    default-src 'self';
+    script-src
+      'self'
+      'unsafe-inline'
+      'unsafe-eval'
+      https://js.stripe.com
+      https://m.stripe.com
+      https://va.vercel-scripts.com;
+    style-src
+      'self'
+      'unsafe-inline';
+    connect-src
+      'self'
+      https://api.stripe.com
+      https://m.stripe.network
+      https://m.stripe.com
+      https://stripe.com
+      https://tkcsjgfgeeuumabatlnw.supabase.co;
+    frame-src
+      'self'
+      https://js.stripe.com
+      https://m.stripe.com
+      https://hooks.stripe.com;
+    img-src
+      'self'
+      data:
+      https://*.stripe.com
+      https://stripe.com
+      https://tkcsjgfgeeuumabatlnw.supabase.co
+      https://media.aulonaflows.com;
+  `.replace(/\s{2,}/g, ' ').trim(),
+}
         ],
       },
       {
