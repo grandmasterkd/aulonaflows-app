@@ -15,87 +15,93 @@ export default function AuthCallbackPage() {
   const returnUrl = searchParams.get('returnUrl')
 
   useEffect(() => {
-    handleAuthCallback()
-  }, [])
+    const handleAuthCallback = async () => {
+      try {
+        // Check for error parameters in URL
+        const error = searchParams.get('error')
+        const errorCode = searchParams.get('error_code')
+        const errorDescription = searchParams.get('error_description')
 
-  const handleAuthCallback = async () => {
-    try {
-      console.log('Auth callback started, URL params:', Object.fromEntries(searchParams.entries()))
-
-      // Check for error parameters in URL
-      const error = searchParams.get('error')
-      const errorCode = searchParams.get('error_code')
-      const errorDescription = searchParams.get('error_description')
-
-      if (error) {
-        console.error('Auth callback error:', { error, errorCode, errorDescription })
-        setStatus('error')
-        setMessage(`Authentication failed: ${errorDescription || error}`)
-        setTimeout(() => {
-          router.push('/auth/login')
-        }, 3000)
-        return
-      }
-
-      // Check for tokens in URL hash (for magic links)
-      const hash = typeof window !== 'undefined' ? window.location.hash.substring(1) : ''
-      const hashParams = new URLSearchParams(hash)
-      const accessToken = hashParams.get('access_token')
-      const refreshToken = hashParams.get('refresh_token')
-      const type = hashParams.get('type')
-
-      if (accessToken && refreshToken && type === 'magiclink') {
-        // Manually set the session
-        const supabase = createClient()
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        })
-
-        if (sessionError) {
-          console.error('Session establishment error:', sessionError)
+        if (error) {
           setStatus('error')
-          setMessage('Failed to establish session')
+          setMessage(`Authentication failed: ${errorDescription || error}`)
           setTimeout(() => {
             router.push('/auth/login')
-          }, 5000)
-          return
-        }
-      }
+          }, 3000)
+        } else {
+          const supabase = createClient()
+          const { data, error } = await supabase.auth.getSession()
 
-      // Handle the callback
-      const result = await authService.handleMagicLinkCallback()
-
-      if (result.success && result.user) {
-        setStatus('success')
-        setMessage('Successfully signed in! Redirecting...')
-
-        setTimeout(() => {
-          // Redirect based on user role
-          if (result.user!.role === 'admin') {
-            router.push('/admin/dashboard')
-          } else if (returnUrl) {
-            router.push(returnUrl)
+          if (error) {
+            setStatus('error')
+            setMessage('Session establishment failed')
+            setTimeout(() => {
+              router.push('/auth/login')
+            }, 3000)
           } else {
-            router.push('/account/dashboard')
+            const user = data.session?.user
+            if (user) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single()
+
+              if (!profile) {
+                const { error: profileError } = await supabase
+                  .from('profiles')
+                  .insert({
+                    id: user.id,
+                    first_name: user.user_metadata?.first_name || '',
+                    last_name: user.user_metadata?.last_name || '',
+                    email: user.email || '',
+                    role: 'user'
+                  })
+
+                if (profileError) {
+                  setStatus('error')
+                  setMessage('Profile creation failed')
+                  setTimeout(() => {
+                    router.push('/auth/login')
+                  }, 3000)
+                } else {
+                  setStatus('success')
+                  setMessage('Welcome! Redirecting...')
+                  setTimeout(() => {
+                    router.push(returnUrl || '/account/dashboard')
+                  }, 2000)
+                }
+              } else {
+                setStatus('success')
+                setMessage('Welcome back! Redirecting...')
+                setTimeout(() => {
+                  if (profile.role === 'admin') {
+                    router.push('/admin/dashboard')
+                  } else {
+                    router.push(returnUrl || '/account/dashboard')
+                  }
+                }, 2000)
+              }
+            } else {
+              setStatus('error')
+              setMessage('No user session found')
+              setTimeout(() => {
+                router.push('/auth/login')
+              }, 3000)
+            }
           }
-        }, 2000)
-      } else {
+        }
+      } catch (error) {
         setStatus('error')
-        setMessage(result.error || 'Authentication failed')
+        setMessage('An unexpected error occurred')
         setTimeout(() => {
           router.push('/auth/login')
         }, 3000)
       }
-    } catch (error) {
-      console.error('Callback error:', error)
-      setStatus('error')
-      setMessage('An unexpected error occurred')
-      setTimeout(() => {
-        router.push('/auth/login')
-      }, 3000)
     }
-  }
+
+    handleAuthCallback()
+  }, [router, searchParams, returnUrl])
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

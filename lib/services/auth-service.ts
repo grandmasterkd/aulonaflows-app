@@ -61,7 +61,6 @@ export class AuthService {
       }
       baseUrl = baseUrl || 'http://localhost:3000'
       const callbackUrl = `${baseUrl}/auth/callback`
-      console.log('Sending magic link to:', email, 'baseUrl:', baseUrl, 'callback URL:', callbackUrl, 'window.location.origin:', typeof window !== 'undefined' ? window.location.origin : 'N/A')
 
       const metadata: any = { role }
       if (userData?.first_name && userData?.last_name) {
@@ -70,7 +69,6 @@ export class AuthService {
         metadata.display_name = `${userData.first_name} ${userData.last_name}`
       }
 
-      console.log('Magic link metadata:', metadata)
 
       const { error } = await this.supabase.auth.signInWithOtp({
         email,
@@ -81,14 +79,11 @@ export class AuthService {
       })
 
       if (error) {
-        console.error('Supabase signInWithOtp error:', error)
         return { success: false, error: error.message }
       }
 
-      console.log('Magic link sent successfully')
       return { success: true }
     } catch (error) {
-      console.error('Send magic link error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -127,7 +122,6 @@ export class AuthService {
           })
 
         if (profileError) {
-          console.error('Profile creation error:', profileError)
           return { success: false, error: 'Failed to create user profile' }
         }
 
@@ -149,7 +143,6 @@ export class AuthService {
             .eq('id', user.id)
 
           if (updateError) {
-            console.error('Profile update error:', updateError)
           } else {
             profile = await this.getUserProfile(user.id)
           }
@@ -162,7 +155,6 @@ export class AuthService {
         session: data.session
       }
     } catch (error) {
-      console.error('Magic link callback error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -210,7 +202,6 @@ export class AuthService {
           })
 
         if (profileError) {
-          console.error('Profile creation error:', profileError)
           return { success: false, error: 'Failed to create user profile' }
         }
 
@@ -228,7 +219,6 @@ export class AuthService {
         session: data.session
       }
     } catch (error) {
-      console.error('Password sign in error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -255,7 +245,6 @@ export class AuthService {
 
       return { success: true, url: data.url }
     } catch (error) {
-      console.error('OAuth sign in error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -293,7 +282,6 @@ export class AuthService {
           })
 
         if (profileError) {
-          console.error('OAuth profile creation error:', profileError)
           return { success: false, error: 'Failed to create user profile' }
         }
 
@@ -310,7 +298,6 @@ export class AuthService {
         session: data.session
       }
     } catch (error) {
-      console.error('OAuth callback error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -326,7 +313,6 @@ export class AuthService {
       }
       return { success: true }
     } catch (error) {
-      console.error('Sign out error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -341,7 +327,6 @@ export class AuthService {
 
       return await this.getUserProfile(user.id)
     } catch (error) {
-      console.error('Get current user error:', error)
       return null
     }
   }
@@ -358,13 +343,11 @@ export class AuthService {
         .single()
 
       if (error || !data) {
-        console.error('Get user profile error:', error)
         return null
       }
 
       return data as UserProfile
     } catch (error) {
-      console.error('Get user profile error:', error)
       return null
     }
   }
@@ -390,7 +373,6 @@ export class AuthService {
 
       return { success: true, user: data as UserProfile }
     } catch (error) {
-      console.error('Update profile error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -414,7 +396,6 @@ export class AuthService {
 
       return { success: true }
     } catch (error) {
-      console.error('Update preferences error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -431,7 +412,6 @@ export class AuthService {
         .single()
 
       if (error || !data) {
-        console.error('Get user preferences error:', error)
         return null
       }
 
@@ -443,7 +423,6 @@ export class AuthService {
         preferred_locations: data.preferred_locations || [],
       }
     } catch (error) {
-      console.error('Get user preferences error:', error)
       return null
     }
   }
@@ -463,7 +442,6 @@ export class AuthService {
 
       return { success: true }
     } catch (error) {
-      console.error('Reset password error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -483,7 +461,6 @@ export class AuthService {
 
       return { success: true }
     } catch (error) {
-      console.error('Update password error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -513,7 +490,6 @@ export class AuthService {
 
       return { success: true }
     } catch (error) {
-      console.error('Verify email error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -541,7 +517,6 @@ export class AuthService {
 
       return { success: true }
     } catch (error) {
-      console.error('Delete user error:', error)
       return { success: false, error: 'An unexpected error occurred' }
     }
   }
@@ -554,7 +529,6 @@ export class AuthService {
       const { data: { session } } = await this.supabase.auth.getSession()
       return session
     } catch (error) {
-      console.error('Get session error:', error)
       return null
     }
   }

@@ -50,14 +50,14 @@ export default function ForgotPasswordPage() {
       <Image
         src="/aulonaflows-mobilehero.webp"
         alt="AulonaFlows Hero Background"
-        layout="fill"
+        fill
         objectFit="cover"
         className="md:hidden mix-blend-luminosity"
       />
       <Image
         src="/aulonaflows-desktophero.webp"
         alt="AulonaFlows Hero Background"
-        layout="fill"
+        fill
         objectFit="cover"
         className="hidden md:block mix-blend-luminosity"
       />

@@ -123,8 +123,6 @@ export default function BookEventPage() {
     const { data, error } = await supabase.from("events").select("*").eq("id", eventId).single()
 
     if (error) {
-      console.error("Error fetching event:", error)
-      router.push("/book")
     } else {
    
       if (data.image_url && !data.image_url.startsWith('http')) {
@@ -192,26 +190,13 @@ export default function BookEventPage() {
 
       const data = await response.json()
 
-      if (!response.ok) {
-        console.log(response)
-        throw new Error(data.error || "Failed to create payment session")
-      }
-
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url
-      } else {
+    if (!response.ok) {
+      const errorData = await response.json()
+    } else {
         throw new Error("No payment URL received")
       }
-    } catch (error) {
-      console.error("Error processing payment:", error)
-      setMessage({
-        type: "error",
-        text: error instanceof Error ? error.message : "An error occurred. Please try again.",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+  } catch (error) {
+  }
   }
 
   const formatDate = (dateString: string) => {

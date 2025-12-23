@@ -141,10 +141,8 @@ export default function BundleBookingPage() {
       .eq("id", bundleId)
       .single()
 
-    if (error) {
-      console.error("Error fetching bundle:", error)
-      setMessage({ type: "error", text: "Failed to load bundle details." })
-    } else {
+      if (error) {
+      } else {
       const bundleData = {
         ...data,
         events: data.bundle_events?.map((be: any) => be.events) || []
@@ -200,24 +198,13 @@ export default function BundleBookingPage() {
 
       const data = await response.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create payment session")
-      }
-
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url
-      } else {
+    if (!response.ok) {
+      const errorData = await response.json()
+    } else {
         throw new Error("No payment URL received")
       }
-    } catch (error) {
-      console.error("Error creating payment session:", error)
-      setMessage({
-        type: "error",
-        text: error instanceof Error ? error.message : "Failed to create payment session. Please try again."
-      })
-      setIsSubmitting(false)
-    }
+  } catch (error) {
+  }
   }
 
   const formatDate = (dateString: string) => {

@@ -33,13 +33,9 @@ export default function LoginPage() {
     // Load pending registration data
     const stored = localStorage.getItem('pendingRegistration')
     if (stored) {
-      try {
-        const data = JSON.parse(stored)
-        setPendingRegistration(data)
-        setEmail(data.email) // Pre-fill email
-      } catch (error) {
-        console.error('Error parsing pending registration:', error)
-      }
+      const data = JSON.parse(stored)
+      setPendingRegistration(data)
+      setEmail(data.email) // Pre-fill email
     }
   }, [message])
 
@@ -88,14 +84,14 @@ export default function LoginPage() {
       <Image
         src="/aulonaflows-mobilehero.webp"
         alt="AulonaFlows Hero Background"
-        layout="fill"
+        fill
         objectFit="cover"
         className="md:hidden mix-blend-luminosity"
       />
       <Image
         src="/aulonaflows-desktophero.webp"
         alt="AulonaFlows Hero Background"
-        layout="fill"
+        fill
         objectFit="cover"
         className="hidden md:block mix-blend-luminosity"
       />
