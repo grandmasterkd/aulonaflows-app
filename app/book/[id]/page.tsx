@@ -190,12 +190,20 @@ export default function BookEventPage() {
 
       const data = await response.json()
 
-    if (!response.ok) {
-      const errorData = await response.json()
-    } else {
+      window.location.href = data.url
+
+      
+
+      if (!response.ok) {
+        setMessage({ type: "error", text: data.error || "Failed to create payment session" })
+        throw new Error(data.error || "Failed to create payment session")
+      } else if (data.url) {
+        window.location.href = data.url
+      } else {
         throw new Error("No payment URL received")
       }
   } catch (error) {
+    setMessage({ type: "error", text: error instanceof Error ? error.message : "An error occurred" })
   }
   }
 

@@ -279,7 +279,7 @@ export async function POST(request: NextRequest) {
         })
 
 
-        if (emailResult.success) {
+        if (emailResult?.success) {
         } else {
           // Don't fail the webhook if email fails - booking is still valid
         }
