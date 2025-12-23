@@ -82,7 +82,6 @@ export default function BookingOverviewPage() {
       .order("date_time", { ascending: true })
 
     if (error) {
-      console.error("Error fetching events:", error)
     } else {
       // Ensure image_url is a full URL
       const eventsWithUrls = (data || []).map(event => {
@@ -109,7 +108,6 @@ export default function BookingOverviewPage() {
       .eq("status", "active")
 
     if (error) {
-      console.error("Error fetching bundles:", error)
     } else {
       const formattedBundles = (data || []).map(bundle => ({
         ...bundle,
@@ -211,7 +209,7 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src="/aulona-yoga-services.webp" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src="/aulona-yoga-services.webp" alt='' fill objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                       <div className="absolute top-5 left-5 z-50" >
                     <span className="bg-gradient-to-tr from-[#E3C9A3] to-[#57463B] backdrop-blur-sm border border-white/50 text-[#FFF0D8] font-medium rounded-full w-fit px-4 py-2 text-xs" >Bundle </span> 
@@ -250,7 +248,7 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' fill objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >
@@ -311,7 +309,7 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src="/aulona-yoga-services.webp" alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src="/aulona-yoga-services.webp" alt='' fill objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                    <div className="absolute top-5 left-5 z-50" >
                     <span className="bg-gradient-to-tr from-[#E3C9A3] to-[#57463B] backdrop-blur-sm border border-white/50 text-[#FFF0D8] font-medium rounded-full w-fit px-4 py-2 text-xs" >Bundle </span> 
@@ -349,7 +347,7 @@ export default function BookingOverviewPage() {
                 <div
                   className="h-80 bg-cover relative"
                 >
-                  <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' layout="fill" objectFit="cover" className="w-full h-80 object-cover" />
+                  <Image src={event.image_url || "/diverse-yoga-class.png"} alt='' fill objectFit="cover" className="w-full h-80 object-cover" />
                   <div className="absolute inset-0 transition-colors" />
                   <div className="absolute bottom-0 left-0 right-0 text-white space-y-2 bg-gradient-to-t from-black via-black/100 to-black/0 p-6 rounded-b-xl">
                     <div className="mb-4" >

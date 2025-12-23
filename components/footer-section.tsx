@@ -38,6 +38,8 @@ export function FooterSection() {
     }
   }, [showPoliciesModal])
 
+  const currentYear = new Date().getFullYear()
+
   return (
     <>
       <section
@@ -209,23 +211,28 @@ export function FooterSection() {
                 >
                   View Policies <ChevronRight className="size-4" />
                 </button>
-                <div className="text-sm lg:text-base">All Rights Reserved. Copyright 2025</div>
+                <div className="text-sm lg:text-base">All Rights Reserved. Copyright {currentYear}</div>
+                <span className="text-xs pt-4 text-black/50 font-medium" > <Link href="https://restorefine.com" target="_blank" className="hover:underline">Designed and developed by Resto Refine Studios</Link></span>
+       
               </div>
+                
             </div>
+            
           </div>
-        </div>
+
+         </div>
       </section>
 
       {showPoliciesModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white/10 backdrop-blur-sm border-b border-gray-200 p-6 flex items-center justify-between rounded-t-2xl">
-              <h2 className="p-2 text-3xl headline-text font-semibold">Policies</h2>
+            <div className="sticky top-0 z-20 bg-[#57463B] backdrop-blur-lg border-b border-gray-200 p-6 flex items-center justify-between rounded-t-2xl">
+              <h2 className="p-2 text-3xl headline-text text-[#E3C9A3] font-semibold">Policies</h2>
               <button
                 onClick={() => setShowPoliciesModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
               >
-                <X className="size-5" />
+                <X className="size-5 text-white hover:text-black transition-all ease-linear duration-500" />
               </button>
             </div>
 

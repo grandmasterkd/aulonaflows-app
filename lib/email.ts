@@ -101,8 +101,6 @@ export async function sendBookingConfirmationEmail({
     console.log(" Email sent successfully:", data)
     return { success: true, data }
   } catch (error) {
-    console.error(" Email sending failed:", error)
-    return { success: false, error }
   }
 }
 
@@ -213,7 +211,5 @@ export async function sendAdminCancellationEmail({
     console.log(" Admin cancellation email sent successfully:", data)
     return { success: true, data }
   } catch (error) {
-    console.error(" Admin cancellation email failed:", error)
-    return { success: false, error }
   }
 }

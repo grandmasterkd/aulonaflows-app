@@ -126,7 +126,6 @@ export default function AdminEventsPage() {
       .range(offset, offset + itemsPerPage - 1)
 
     if (error) {
-      console.error("Error fetching events:", error)
     } else {
       setEvents(data || [])
       setTotalItems(count || 0)

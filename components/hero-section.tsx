@@ -22,16 +22,14 @@ export function HeroSection() {
       <Image
         src="/aulonaflows-mobilehero.webp"
         alt="AulonaFlows Hero Background"
-        layout="fill"
-        objectFit="cover"
-        className="md:hidden mix-blend-luminosity"
+        fill
+        className="md:hidden mix-blend-luminosity object-cover"
       />
       <Image
         src="/aulonaflows-desktophero.webp"
         alt="AulonaFlows Hero Background"
-        layout="fill"
-        objectFit="cover"
-        className="hidden md:block mix-blend-luminosity"
+        fill
+        className="hidden md:block mix-blend-luminosity object-cover"
       />
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/30" />
