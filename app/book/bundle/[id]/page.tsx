@@ -39,6 +39,7 @@ interface Bundle {
 export default function BundleBookingPage() {
   const params = useParams()
   const router = useRouter()
+  const [err, setErr] = useState<string | null>(null)
   const searchParams = useSearchParams()
   const bundleId = params.id as string
   const eventIds = searchParams.get('events')?.split(',') || []
@@ -198,12 +199,17 @@ export default function BundleBookingPage() {
 
       const data = await response.json()
 
-    if (!response.ok) {
+      window.location.href = data?.url
+
+      if (!response.ok) {
       const errorData = await response.json()
+      setMessage({ type: "error", text: errorData.error })
+      
     } else {
         throw new Error("No payment URL received")
       }
   } catch (error) {
+    setMessage({ type: "error", text: error instanceof Error ? error.message : "An error occurred" })
   }
   }
 
