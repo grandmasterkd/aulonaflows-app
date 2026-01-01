@@ -522,8 +522,10 @@ export class BookingService {
           .eq('booking_status', 'confirmed')
           .single()
 
-        if (existingBooking) {
-          return { canBook: false, reason: 'You have already booked this event' }
+        if (existingBooking.payment_status === "paid") {
+          return { canBook: false, reason: 'You have already booked this event of christmas' }
+        } else {
+          "Unable to book event, contact helpdesk for assistance"
         }
       }
 

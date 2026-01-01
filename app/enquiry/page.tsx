@@ -99,12 +99,12 @@ export default function EnquiryPage() {
           </Link>
         </div>
 
-        <div className="absolute mx-auto z-20 top-20">
+        <div className="fixed mx-auto z-20 top-10 md:top-20">
           {message && (
             <div
-              className={`mb-6 p-4 rounded-lg flex items-center gap-2 w-fit ${
+              className={`mb-6 p-4 rounded-xl flex md:items-center items-start gap-2 w-fit shadow-md ${
                message.type === "error"
-               ? "bg-red-500/85 backdrop-blur-sm text-red-50 border border-red-200"
+               ? "bg-red-500 backdrop-blur-sm text-red-50 border border-red-200"
                : "bg-green-500 text-green-50 border border-green-200"
                 }`}
               >

@@ -78,7 +78,7 @@ export default function BookEventPage() {
     if (message) {
       const timer = setTimeout(() => {
         setMessage(null)
-      }, 3000)
+      }, 5000)
       return () => clearTimeout(timer)
     }
   }, [message])
@@ -176,8 +176,8 @@ export default function BookEventPage() {
         agreed_to_terms: bookingForm.agreed_to_terms,
       }
 
-      // Create Stripe payment session
-      const response = await fetch("/api/create-payment-session", {
+      // Step 1: Create pending booking
+      const bookingResponse = await fetch("/api/create-pending-booking", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -188,23 +188,55 @@ export default function BookEventPage() {
         }),
       })
 
-      const data = await response.json()
+      const bookingResult = await bookingResponse.json()
 
-      window.location.href = data.url
-
-      
-
-      if (!response.ok) {
-        setMessage({ type: "error", text: data.error || "Failed to create payment session" })
-        throw new Error(data.error || "Failed to create payment session")
-      } else if (data.url) {
-        window.location.href = data.url
-      } else {
-        throw new Error("No payment URL received")
+      if (!bookingResponse.ok) {
+        setMessage({ type: "error", text: bookingResult.error || "Unable to book event, please try again" })
+        setIsSubmitting(false)
+        return
       }
-  } catch (error) {
-    setMessage({ type: "error", text: error instanceof Error ? error.message : "An error occurred" })
-  }
+
+      // Step 2: Verify booking exists
+      const verifyResponse = await fetch(`/api/verify-booking/${bookingResult.bookingId}`)
+      if (!verifyResponse.ok) {
+        setMessage({ type: "error", text: "Unable to book event, please try again" })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Step 3: Create payment session with existing booking
+      const paymentResponse = await fetch("/api/create-payment-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          eventId: event.id,
+          bookingData,
+          bookingId: bookingResult.bookingId,
+        }),
+      })
+
+      const paymentData = await paymentResponse.json()
+
+      if (!paymentResponse.ok) {
+        setMessage({ type: "error", text: paymentData.error || "Failed to create payment session" })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Success - redirect to Stripe
+      if (paymentData.url) {
+        window.location.href = paymentData.url
+      } else {
+        setMessage({ type: "error", text: "No payment URL received" })
+        setIsSubmitting(false)
+      }
+
+    } catch (error) {
+      setMessage({ type: "error", text: error instanceof Error ? error.message : "An error occurred" })
+      setIsSubmitting(false)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -231,31 +263,31 @@ export default function BookEventPage() {
   }
 
   if (!event) {
-    return <div className="min-h-screen flex items-center justify-center">Event not found</div>
+    return <div className="min-h-screen flex items-center justify-center">Event Not Found</div>
   }
 
   return (
-    <main className="relative min-h-screen w-full grid place-items-center px-8 md:px-24 lg:px-36 py-12">
+    <main className="relative min-h-screen grid place-items-center px-8 md:px-24 lg:px-96 py-8 overflow-auto">
     
         {/* Back Button */}
         <div className="w-full" >
-          <Link href="/book" className="w-fit inline-flex text-left gap-2 text-[#654625] hover:text-[#4a3319] mb-6">
+          <Link href="/book" className="w-fit inline-flex text-left gap-2 text-[#654625] hover:text-[#4a3319] mb-6 md:mb-0">
             <ArrowLeft size={20} />
             Back to Events
           </Link>
         </div>
 
-        <div className="absolute mx-auto z-20 top-20">
+        <div className="fixed mx-auto z-30 top-10 md:top-20">
           {message && (
             <div
-              className={`mb-6 p-4 rounded-lg flex items-center gap-2 w-fit ${
+              className={`mb-6 p-4 rounded-xl flex md:items-center items-start gap-2 w-fit ${
                message.type === "error"
-               ? "bg-red-500/85 backdrop-blur-sm text-red-50 border border-red-200"
+               ? "bg-red-500 backdrop-blur-sm text-red-50 border border-red-200 shadow-md"
                : "bg-green-500 text-green-50 border border-green-200"
                 }`}
               >
                     {message.type === "error" && <AlertCircle size={20} />}
-              <span className="whitespace-nowrap text-sm" >{message.text}</span>
+              <span className="text-sm" >{message.text}</span>
             </div>
           )}
         </div>

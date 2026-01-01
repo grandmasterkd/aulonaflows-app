@@ -19,6 +19,10 @@ export async function POST(request: NextRequest) {
     let productImages: string[] = []
     let metadata: any = { notes: JSON.stringify(bookingData) }
 
+
+    const { } = await supabase .from("bookings").insert({ bookingData : bookingData })
+
+
     if (bundleId) {
       // Handle bundle booking
       const { data: bundle, error: bundleError } = await supabase
@@ -68,13 +72,15 @@ export async function POST(request: NextRequest) {
       // Check for existing booking to prevent duplicates
       const { data: existingBooking } = await supabase
         .from("bookings")
-        .select("id")
+        .select("id, payment_status")
         .eq("user_id", bookingData.user_id)
         .eq("class_id", eventId)
         .single()
 
-      if (existingBooking) {
-        return NextResponse.json({ error: "You have already booked this event" }, { status: 400 })
+      if (existingBooking?.payment_status === "paid") {
+        return NextResponse.json({ error: "You have already booked this event of thursday" }, { status: 400 })
+      } else {
+        "Unable to book event, contact helpdesk for assistance"
       }
 
       // Set product images for single event
@@ -169,6 +175,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error creating payment session:", error)
-    return NextResponse.json({ error: "Failed to create payment session" }, { status: 500 })
+    return NextResponse.json({ error: error || "Failed to create payment session" }, { status: 500 })
   }
 }

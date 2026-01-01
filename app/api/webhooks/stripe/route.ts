@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 import { sendBookingConfirmationEmail } from "@/lib/email"
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: process.env.STRIPE_API_VERSION as Stripe.LatestApiVersion,
+  apiVersion: process.env.STRIPE_API_VERSION! as Stripe.LatestApiVersion,
 })
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
@@ -15,13 +15,16 @@ export async function POST(request: NextRequest) {
     const body = await request.text()
     const signature = request.headers.get("stripe-signature")!
 
+    console.log("stripe-sign",signature)
+
 
     let event: Stripe.Event
 
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
     } catch (err) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
+      console.log("signature error",err)
+      return NextResponse.json({ error: err || "Invalid signature" }, { status: 400 })
     }
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
@@ -88,9 +91,10 @@ export async function POST(request: NextRequest) {
 
       const eventId = session.metadata?.eventId
       const bundleId = session.metadata?.bundleId
+      const bookingId = session.metadata?.bookingId
 
-      if (!eventId && !bundleId) {
-        return NextResponse.json({ error: "Missing event or bundle ID" }, { status: 500 })
+      if (!eventId && !bundleId && !bookingId) {
+        return NextResponse.json({ error: "Missing event, bundle, or booking ID" }, { status: 500 })
       }
 
       const notesObject = {
@@ -122,55 +126,78 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Bundle not found" }, { status: 500 })
         }
 
-        // Check for existing bundle booking to prevent duplicates
-        const { data: existingBundleBooking } = await supabase
-          .from("bookings")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("bundle_id", bundleId)
-          .single()
-
-        if (existingBundleBooking) {
-          return NextResponse.json({ error: "Bundle already booked" }, { status: 400 })
-        }
-
-        // Create bookings for each event in the bundle
-        for (const bundleEvent of bundle.bundle_events) {
-          const event = bundleEvent.events
-
-          const { data: newBooking, error: bookingError } = await supabase
+        // If bookingId is provided, update existing pending booking
+        if (bookingId) {
+          const { data: existingBooking, error: updateError } = await supabase
             .from("bookings")
-            .insert({
-              user_id: userId,
-              class_id: event.id,
-              bundle_id: bundleId,
-              booking_date: new Date().toISOString(),
-              notes: JSON.stringify(notesObject),
+            .update({
               payment_status: "paid",
-              status: "confirmed",
+              status: "confirmed"
             })
+            .eq("id", bookingId)
+            .eq("payment_status", "pending")
+            .eq("user_id", userId)
             .select()
             .single()
 
-          if (bookingError) {
-            return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
+          if (updateError || !existingBooking) {
+            return NextResponse.json({ error: "Failed to update booking" }, { status: 500 })
           }
 
-          bookings.push(newBooking)
+          bookings.push(existingBooking)
+        } else {
+          // Check for existing bundle booking to prevent duplicates
+          const { data: existingBundleBooking } = await supabase
+            .from("bookings")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("bundle_id", bundleId)
+            .single()
 
-          // Update event booking count
-          const { error: eventUpdateError } = await supabase
-            .from("events")
-            .update({
-              booking_count: (await supabase
-                .from("events")
-                .select("booking_count")
-                .eq("id", event.id)
-                .single()).data?.booking_count + 1,
-            })
-            .eq("id", event.id)
+          if (existingBundleBooking) {
+            return NextResponse.json({ error: "Bundle already booked" }, { status: 400 })
+          }
+        }
 
-          if (eventUpdateError) {
+        // Create bookings for each event in the bundle (only if no bookingId provided)
+        if (!bookingId) {
+          for (const bundleEvent of bundle.bundle_events) {
+            const event = bundleEvent.events
+
+            const { data: newBooking, error: bookingError } = await supabase
+              .from("bookings")
+              .insert({
+                user_id: userId,
+                class_id: event.id,
+                bundle_id: bundleId,
+                booking_date: new Date().toISOString(),
+                notes: JSON.stringify(notesObject),
+                payment_status: "paid",
+                status: "confirmed",
+              })
+              .select()
+              .single()
+
+            if (bookingError) {
+              return NextResponse.json({ error: bookingError || "Failed to create booking" }, { status: 500 })
+            }
+
+            bookings.push(newBooking)
+
+            // Update event booking count
+            const { error: eventUpdateError } = await supabase
+              .from("events")
+              .update({
+                booking_count: (await supabase
+                  .from("events")
+                  .select("booking_count")
+                  .eq("id", event.id)
+                  .single()).data?.booking_count + 1,
+              })
+              .eq("id", event.id)
+
+            if (eventUpdateError) {
+            }
           }
         }
 
@@ -178,52 +205,76 @@ export async function POST(request: NextRequest) {
       } else {
         // Handle single event booking
 
-        // Check for existing booking to prevent duplicates
-        const { data: existingBooking } = await supabase
-          .from("bookings")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("class_id", eventId)
-          .single()
-
         let booking
-        if (existingBooking) {
-          booking = existingBooking
-        } else {
-          const { data: newBooking, error: bookingError } = await supabase
+        if (bookingId) {
+          // Update existing pending booking
+          const { data: existingBooking, error: updateError } = await supabase
             .from("bookings")
-            .insert({
-              user_id: userId,
-              class_id: eventId,
-              booking_date: new Date().toISOString(),
-              notes: JSON.stringify(notesObject),
+            .update({
               payment_status: "paid",
-              status: "confirmed",
+              status: "confirmed"
             })
+            .eq("id", bookingId)
+            .eq("payment_status", "pending")
+            .eq("user_id", userId)
             .select()
             .single()
 
-          if (bookingError) {
-            return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
+          if (updateError || !existingBooking) {
+            return NextResponse.json({ error: "Failed to update booking" }, { status: 500 })
           }
 
-          booking = newBooking
+          booking = existingBooking
+        } else {
+          // Check for existing booking to prevent duplicates
+          const { data: existingBooking } = await supabase
+            .from("bookings")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("class_id", eventId)
+            .single()
+
+          if (existingBooking) {
+            booking = existingBooking
+          } else {
+            const { data: newBooking, error: bookingError } = await supabase
+              .from("bookings")
+              .insert({
+                user_id: userId,
+                class_id: eventId,
+                booking_date: new Date().toISOString(),
+                notes: JSON.stringify(notesObject),
+                payment_status: "paid",
+                status: "confirmed",
+              })
+              .select()
+              .single()
+
+            if (bookingError) {
+              return NextResponse.json({ error: bookingError ||"Failed to create booking" }, { status: 500 })
+            }
+
+            booking = newBooking
+          }
         }
 
         bookings.push(booking)
 
-        const { error: eventUpdateError } = await supabase
-          .from("events")
-          .update({
-            booking_count: (await supabase
-              .from("events")
-              .select("booking_count")
-              .eq("id", eventId)
-              .single()).data?.booking_count + 1,
-          })
-          .eq("id", eventId)
+        // Only increment booking count for new bookings, not updates
+        if (!bookingId) {
+          const { error: eventUpdateError } = await supabase
+            .from("events")
+            .update({
+              booking_count: (await supabase
+                .from("events")
+                .select("booking_count")
+                .eq("id", eventId)
+                .single()).data?.booking_count + 1,
+            })
+            .eq("id", eventId)
 
-        if (eventUpdateError) {
+          if (eventUpdateError) {
+          }
         }
 
         // Get event data
@@ -262,8 +313,10 @@ export async function POST(request: NextRequest) {
         .select()
         .single()
 
+        console.log("pays:",payment)
+
       if (paymentError) {
-        return NextResponse.json({ error: "Failed to create payment record" }, { status: 500 })
+        return NextResponse.json({ error: paymentError || "Failed to create payment record" }, { status: 500 })
       } else {
       }
 

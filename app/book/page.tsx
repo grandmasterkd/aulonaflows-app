@@ -156,10 +156,10 @@ export default function BookingOverviewPage() {
               <h1 className="headline-text max-w-lg lg:max-w-md leading-normal md:leading-normal text-4xl md:text-5xl font-bold">Begin Your Journey Inward Today</h1>
               <div className="relative">
                 <Input
-                  placeholder="Search for classes, workshops, or events..."
+                  placeholder="Search events"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-none bg-gray-100 rounded-full w-full lg:w-[80%] h-14 text-base indent-10"
+                  className="border-none bg-gray-100 rounded-full w-full lg:w-[80%] h-14 text-sm md:text-base indent-10"
                 />
                 <Search className="size-5 absolute left-6 top-4" />
               </div>
