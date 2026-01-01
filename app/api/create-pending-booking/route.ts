@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     if (existingBooking) {
       if (existingBooking.payment_status === "paid") {
-        return NextResponse.json({ error: "You have already booked this event of pending lust" }, { status: 400 })
+        return NextResponse.json({ error: "You have already booked this event" }, { status: 400 })
       } else {
         // If payment status is not paid (pending, failed, etc.), contact support
         return NextResponse.json({ error: "Unable to book event, contact helpdesk for assistance" }, { status: 400 })
