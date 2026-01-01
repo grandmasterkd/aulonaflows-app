@@ -20,9 +20,6 @@ export async function POST(request: NextRequest) {
     let metadata: any = { notes: JSON.stringify(bookingData) }
 
 
-    const { } = await supabase .from("bookings").insert({ bookingData : bookingData })
-
-
     if (bundleId) {
       // Handle bundle booking
       const { data: bundle, error: bundleError } = await supabase
@@ -69,19 +66,50 @@ export async function POST(request: NextRequest) {
       itemDescription = `${event.category} - ${event.location}`
       metadata.eventId = eventId
 
-      // Check for existing booking to prevent duplicates
-      const { data: existingBooking } = await supabase
-        .from("bookings")
-        .select("id, payment_status")
-        .eq("user_id", bookingData.user_id)
-        .eq("class_id", eventId)
-        .single()
+       // Check for existing booking
+       const { data: existingBooking } = await supabase
+         .from("bookings")
+         .select("id, payment_status")
+         .eq("user_id", bookingData.user_id)
+         .eq("class_id", eventId)
+         .single()
 
-      if (existingBooking?.payment_status === "paid") {
-        return NextResponse.json({ error: "You have already booked this event of thursday" }, { status: 400 })
-      } else {
-        "Unable to book event, contact helpdesk for assistance"
-      }
+       let bookingIdToUse
+       if (existingBooking) {
+         if (existingBooking.payment_status === "paid") {
+           return NextResponse.json({ error: "You have already booked this event" }, { status: 400 })
+         } else {
+           // Use existing pending booking
+           bookingIdToUse = existingBooking.id
+         }
+       } else {
+         // Create new pending booking
+         const { data: newBooking, error: insertError } = await supabase
+           .from("bookings")
+           .insert({
+             user_id: bookingData.user_id,
+             class_id: eventId,
+             booking_date: new Date().toISOString(),
+             notes: JSON.stringify(bookingData),
+             payment_status: "pending",
+             status: "pending",
+             name: bookingData.name,
+             email: bookingData.email,
+             phone: bookingData.phone,
+             has_health_conditions: bookingData.has_health_conditions,
+             health_conditions: bookingData.health_conditions || "",
+             agreed_to_terms: bookingData.agreed_to_terms,
+           })
+           .select()
+           .single()
+
+         if (insertError) {
+           return NextResponse.json({ error: "Failed to create booking" }, { status: 500 })
+         }
+         bookingIdToUse = newBooking.id
+       }
+
+       metadata.bookingId = bookingIdToUse
 
       // Set product images for single event
       const isValidImageUrl = (url: string) => {
